@@ -479,6 +479,23 @@
             margin-top: 5px;
         }
 
+        /* SYNC STATUS */
+        .sync-status {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #ff0080, #8000ff);
+            color: #fff;
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-weight: 900;
+            z-index: 2000;
+            box-shadow: 0 0 50px rgba(255,0,128,0.8);
+            text-align: center;
+            font-size: clamp(1em, 2vw, 1.2em);
+        }
+
         /* UTILITY CLASSES */
         .hidden {
             display: none !important;
@@ -587,6 +604,21 @@
             border: 2px solid #ffaa00;
             border-radius: 15px;
         }
+
+        .live-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background: #ff0080;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: livePulse 1s ease-in-out infinite;
+        }
+
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
     </style>
 </head>
 <body>
@@ -630,7 +662,10 @@
         <!-- WAITING LOBBY -->
         <div id="waiting-lobby" class="waiting-lobby hidden">
             <h2 class="lobby-title">🏁 SALA DE ESPERA</h2>
-            <p class="waiting-message">Esperando más jugadores...</p>
+            <p class="waiting-message">
+                <span class="live-indicator"></span>
+                SINCRONIZADO EN TIEMPO REAL
+            </p>
             
             <div class="players-list">
                 <h3 style="color: #00ff41; margin-bottom: 15px;">👥 JUGADORES CONECTADOS (<span id="player-count">0</span>/17)</h3>
@@ -669,7 +704,10 @@
 
         <!-- LEADERBOARD -->
         <div id="leaderboard" class="leaderboard">
-            <h2 class="leaderboard-title">🏆 CLASIFICACIÓN ACTUAL</h2>
+            <h2 class="leaderboard-title">
+                <span class="live-indicator"></span>
+                🏆 CLASIFICACIÓN EN VIVO
+            </h2>
             <div id="team-standings" class="team-standings"></div>
         </div>
 
@@ -688,7 +726,7 @@
 
     <script>
         // =============================================
-        // JEU SIMPLIFIÉ STYLE KAHOOT
+        // CLIENTE SINCRONIZADO EN TIEMPO REAL
         // =============================================
         
         let gameState = {
@@ -696,63 +734,10 @@
             currentUser: null,
             selectedTeam: null,
             currentQuestion: 0,
-            players: [],
-            currentTimer: null, // Pour gérer le timer
-            isGameActive: false, // État du jeu
-            teams: [
-                { name: 'RIÑÓN ROJO', emoji: '🏎️', members: [], score: 0 },
-                { name: 'AZUL NEFRÓN', emoji: '🏁', members: [], score: 0 },
-                { name: 'AMARILLO FILTRO', emoji: '🚗', members: [], score: 0 },
-                { name: 'VERDE HOMEOSTASIS', emoji: '🏎️', members: [], score: 0 },
-                { name: 'PÚRPURA UREA', emoji: '🏁', members: [], score: 0 }
-            ],
-            challenges: [
-                {
-                    type: "⚡ DESAFÍO RELÁMPAGO",
-                    difficulty: 2,
-                    time: 20,
-                    question: "¿Qué estructura del nefrón es responsable de la filtración selectiva de proteínas plasmáticas?",
-                    options: ["Cápsula de Bowman", "Barrera de filtración glomerular", "Túbulo contorneado proximal", "Asa de Henle"],
-                    correct: 1,
-                    points: 15
-                },
-                {
-                    type: "🧩 IDENTIFICACIÓN",
-                    difficulty: 2,
-                    time: 20,
-                    question: "¿Cuál es la hormona que regula la reabsorción de sodio en el túbulo distal?",
-                    options: ["ADH", "Aldosterona", "Eritropoyetina", "Renina"],
-                    correct: 1,
-                    points: 15
-                },
-                {
-                    type: "🚀 BONUS RACE",
-                    difficulty: 4,
-                    time: 25,
-                    question: "En la acidosis metabólica, ¿qué células del túbulo distal secretan H+ y reabsorben HCO3-?",
-                    options: ["Células principales", "Células intercaladas tipo A", "Células intercaladas tipo B", "Podocitos"],
-                    correct: 1,
-                    points: 30
-                },
-                {
-                    type: "⚡ DESAFÍO RELÁMPAGO",
-                    difficulty: 3,
-                    time: 20,
-                    question: "¿Qué valor de clearance de creatinina indica insuficiencia renal crónica estadio 3?",
-                    options: ["90-120 mL/min", "60-89 mL/min", "30-59 mL/min", "15-29 mL/min"],
-                    correct: 2,
-                    points: 20
-                },
-                {
-                    type: "🧩 IDENTIFICACIÓN",
-                    difficulty: 3,
-                    time: 25,
-                    question: "¿Qué transportador en el túbulo proximal es inhibido por los diuréticos de asa?",
-                    options: ["NCC", "NKCC2", "ENaC", "AQP2"],
-                    correct: 1,
-                    points: 20
-                }
-            ]
+            localTimer: null,
+            isGameActive: false,
+            lastSync: 0,
+            serverData: null
         };
 
         // =============================================
@@ -777,7 +762,6 @@
                 return await response.json();
             } catch (error) {
                 console.error('API Error:', error);
-                // Mode offline : continuer sans API
                 return { success: false, error: error.message };
             }
         }
@@ -786,10 +770,15 @@
             try {
                 const response = await fetch(`${API_BASE}/join-game`);
                 if (response.ok) {
-                    return await response.json();
+                    const data = await response.json();
+                    if (data.success) {
+                        gameState.serverData = data;
+                        gameState.lastSync = Date.now();
+                        return data;
+                    }
                 }
             } catch (error) {
-                console.log('API no disponible - modo offline');
+                console.log('API no disponible');
             }
             return null;
         }
@@ -801,61 +790,82 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializeGame();
             setupEventListeners();
-            startPolling();
+            startSyncLoop();
         });
 
         function initializeGame() {
             updateConnectionStatus(true);
-            updateLeaderboard();
             showScreen('login');
-            
-            // Cargar estado inicial del servidor
             loadGameState();
         }
 
         async function loadGameState() {
             const serverState = await getGameState();
-            if (serverState && serverState.success) {
-                // Actualizar con datos del servidor
-                gameState.players = serverState.players || [];
-                updateUIFromServerState();
+            if (serverState) {
+                syncWithServer(serverState);
             }
         }
 
-        function updateUIFromServerState() {
-            // Redistribuer les joueurs dans les équipes
-            gameState.teams.forEach(team => team.members = []);
-            
-            gameState.players.forEach(player => {
-                if (player.team !== undefined && player.team < gameState.teams.length) {
-                    gameState.teams[player.team].members.push(player);
+        function startSyncLoop() {
+            // Synchronisation très fréquente pour le temps réel
+            setInterval(async () => {
+                const serverState = await getGameState();
+                if (serverState) {
+                    syncWithServer(serverState);
+                } else {
+                    updateConnectionStatus(false);
                 }
-            });
-            
-            updateTeamCounts();
-            updatePlayersList();
-            updateStartButton();
+            }, 1000); // Sync toutes les secondes
         }
 
-        function startPolling() {
-            // Polling pour synchronisation en temps réel
-            setInterval(async () => {
-                if (gameState.phase === 'waiting' || gameState.phase === 'playing') {
-                    const serverState = await getGameState();
-                    if (serverState && serverState.success) {
-                        gameState.players = serverState.players || [];
-                        updateUIFromServerState();
-                        
-                        // Mettre à jour le classement en temps réel
-                        updateLeaderboard();
-                        
-                        // Vérifier si la session est vide
-                        if (gameState.players.length === 0) {
-                            checkForEmptySession();
-                        }
-                    }
+        function syncWithServer(serverData) {
+            updateConnectionStatus(true);
+            
+            // Synchroniser état du jeu
+            if (serverData.gameStatus === 'playing' && gameState.phase !== 'playing') {
+                // Le jeu vient de commencer
+                showScreen('playing');
+                showNotification('🏁 ¡La carrera ha comenzado!');
+                gameState.isGameActive = true;
+            } else if (serverData.gameStatus === 'finished' && gameState.phase === 'playing') {
+                // Le jeu vient de finir
+                endGame(serverData.teams);
+            } else if (serverData.gameStatus === 'waiting' && gameState.phase === 'playing') {
+                // Retour en salle d'attente
+                showScreen('waiting');
+                gameState.isGameActive = false;
+            }
+
+            // Synchroniser question actuelle
+            if (serverData.currentQuestionData && gameState.phase === 'playing') {
+                if (gameState.currentQuestion !== serverData.currentQuestion) {
+                    // Nouvelle question
+                    gameState.currentQuestion = serverData.currentQuestion;
+                    showQuestionFromServer(serverData);
+                } else if (serverData.questionStartTime && gameState.localTimer) {
+                    // Synchroniser timer
+                    const elapsed = (Date.now() - serverData.questionStartTime) / 1000;
+                    const timeLeft = Math.max(0, serverData.currentQuestionData.time - elapsed);
+                    updateTimerDisplay(Math.ceil(timeLeft));
                 }
-            }, 2000); // Plus fréquent pour le temps réel
+            }
+
+            // Toujours synchroniser teams et leaderboard
+            if (serverData.teams) {
+                updateLeaderboardFromServer(serverData.teams);
+                updateTeamCountsFromServer(serverData.teams);
+                updatePlayersListFromServer(serverData.players || []);
+                updateStartButton(serverData.players ? serverData.players.length : 0);
+            }
+
+            // Mettre à jour info utilisateur si connecté
+            if (gameState.currentUser && serverData.players) {
+                const updatedUser = serverData.players.find(p => p.id === gameState.currentUser.id);
+                if (updatedUser) {
+                    gameState.currentUser = updatedUser;
+                    updateUserInfo();
+                }
+            }
         }
 
         function setupEventListeners() {
@@ -891,11 +901,6 @@
         // =============================================
         
         function selectTeam(teamIndex) {
-            if (gameState.teams[teamIndex].members.length >= 4) {
-                showNotification('⚠️ Equipo completo. Elige otro equipo.');
-                return;
-            }
-
             document.querySelectorAll('.team-option').forEach(option => {
                 option.classList.remove('selected');
             });
@@ -922,127 +927,58 @@
                 return;
             }
 
-            // Essayer d'abord l'API
+            showSyncStatus('🔄 Uniéndose al juego...');
+
             const response = await apiCall('join', {
                 playerName: username,
                 teamIndex: teamIndex
             });
 
+            hideSyncStatus();
+
             if (response.success) {
-                // Serveur OK
-                const user = response.player;
-                gameState.currentUser = user;
-                
-                // Actualiser état local
-                await loadGameState();
-                
+                gameState.currentUser = response.player;
                 updateUserInfo();
                 showScreen('waiting');
                 showNotification(`🎉 ¡Bienvenido ${username}!`);
-            } else {
-                // Fallback mode offline
-                if (response.error) {
-                    showNotification(`❌ ${response.error}`);
-                    return;
-                }
                 
-                // Mode offline complet
-                joinGameOffline(username, teamIndex);
-            }
-        }
-
-        function joinGameOffline(username, teamIndex) {
-            // Vérifications locales
-            if (gameState.players.length >= 17) {
-                showNotification('❌ Sala completa (máximo 17 jugadores)');
-                return;
-            }
-
-            const existingPlayer = gameState.players.find(p => p.name === username);
-            if (existingPlayer) {
-                showNotification('❌ Ese nombre ya está en uso');
-                return;
-            }
-
-            if (gameState.teams[teamIndex].members.length >= 4) {
-                showNotification('❌ Equipo completo');
-                return;
-            }
-
-            // Crear usuario local
-            const user = {
-                id: generateUserId(),
-                name: username,
-                team: teamIndex,
-                score: 0,
-                connected: true
-            };
-
-            gameState.currentUser = user;
-            gameState.players.push(user);
-            gameState.teams[teamIndex].members.push(user);
-
-            updateUserInfo();
-            updateTeamCounts();
-            updatePlayersList();
-            updateStartButton();
-            showScreen('waiting');
-
-            showNotification(`🎉 ¡Bienvenido ${username}! (Modo offline)`);
-
-            // Simular que otros jugadores también se conectan (para demo en modo offline)
-            if (!response.success) {
-                setTimeout(() => {
-                    addDemoPlayer('MARÍA', 0);
-                    setTimeout(() => addDemoPlayer('CARLOS', 1), 1000);
-                }, 2000);
+                // Sync immédiate après connexion
+                await loadGameState();
+            } else {
+                showNotification(`❌ ${response.error || 'Error al unirse'}`);
             }
         }
 
         async function leaveGame() {
             if (!gameState.currentUser) return;
 
-            // Confirmer avant de quitter
             if (!confirm('¿Estás seguro de que quieres salir del juego?')) {
                 return;
             }
 
-            try {
-                // Notifier le serveur
-                await apiCall('leave', {
-                    playerId: gameState.currentUser.id
-                });
-            } catch (error) {
-                console.log('Error notificando salida al servidor');
-            }
+            showSyncStatus('🔄 Saliendo del juego...');
 
-            // Nettoyer localement
+            await apiCall('leave', {
+                playerId: gameState.currentUser.id
+            });
+
+            hideSyncStatus();
             leaveGameLocally();
         }
 
         function leaveGameLocally() {
-            if (!gameState.currentUser) return;
-
-            // Retirer le joueur de la liste locale
-            gameState.players = gameState.players.filter(p => p.id !== gameState.currentUser.id);
-            
-            // Retirer de l'équipe
-            if (gameState.currentUser.team < gameState.teams.length) {
-                gameState.teams[gameState.currentUser.team].members = 
-                    gameState.teams[gameState.currentUser.team].members.filter(m => m.id !== gameState.currentUser.id);
+            // Nettoyer timer
+            if (gameState.localTimer) {
+                clearInterval(gameState.localTimer);
+                gameState.localTimer = null;
             }
 
-            // Nettoyer état utilisateur
+            // Reset état
             gameState.currentUser = null;
             gameState.selectedTeam = null;
+            gameState.isGameActive = false;
 
-            // Arrêter timer si actif
-            if (gameState.currentTimer) {
-                clearInterval(gameState.currentTimer);
-                gameState.currentTimer = null;
-            }
-
-            // Retourner au login
+            // Retour login
             showScreen('login');
             showNotification('👋 Has salido del juego');
 
@@ -1051,36 +987,14 @@
             document.querySelectorAll('.team-option').forEach(option => {
                 option.classList.remove('selected');
             });
-            if (gameState.players.length >= 17) return;
-            if (gameState.teams[teamIndex].members.length >= 4) return;
-
-            const user = {
-                id: generateUserId(),
-                name: name,
-                team: teamIndex,
-                score: 0,
-                connected: true
-            };
-
-            gameState.players.push(user);
-            gameState.teams[teamIndex].members.push(user);
-
-            updateTeamCounts();
-            updatePlayersList();
-            updateStartButton();
-            showNotification(`👋 ${name} se unió al juego`);
-        }
-
-        function generateUserId() {
-            return 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
         }
 
         // =============================================
-        // ACTUALIZACIÓN DE UI
+        // ACTUALIZACIÓN DE UI DESDE SERVIDOR
         // =============================================
         
-        function updateTeamCounts() {
-            gameState.teams.forEach((team, index) => {
+        function updateTeamCountsFromServer(teams) {
+            teams.forEach((team, index) => {
                 const countElement = document.getElementById(`team-${index}-count`);
                 const teamOption = document.querySelector(`[data-team="${index}"]`);
                 
@@ -1098,46 +1012,50 @@
             });
         }
 
-        function updatePlayersList() {
+        function updatePlayersListFromServer(players) {
             const container = document.getElementById('players-container');
             const countElement = document.getElementById('player-count');
             
-            countElement.textContent = gameState.players.length;
+            countElement.textContent = players.length;
             container.innerHTML = '';
 
-            gameState.players.forEach(player => {
-                const team = gameState.teams[player.team];
+            if (!gameState.serverData || !gameState.serverData.teams) return;
+
+            players.forEach(player => {
+                const team = gameState.serverData.teams[player.team];
+                if (!team) return;
+                
                 const playerDiv = document.createElement('div');
                 playerDiv.className = 'player-item';
                 
                 playerDiv.innerHTML = `
                     <span class="player-emoji">${team.emoji}</span>
                     <span>${player.name}</span>
-                    <span style="margin-left: auto; color: #ffaa00;">${player.score} pts</span>
+                    <span style="margin-left: auto; color: #ffaa00;">${player.score || 0} pts</span>
                 `;
                 
                 container.appendChild(playerDiv);
             });
         }
 
-        function updateStartButton() {
+        function updateStartButton(playerCount) {
             const btn = document.getElementById('start-game-btn');
-            const canStart = gameState.players.length >= 1;
+            const canStart = playerCount >= 1;
             
             btn.disabled = !canStart;
             
             if (canStart) {
-                btn.textContent = `🚀 INICIAR CARRERA (${gameState.players.length} jugadores)`;
+                btn.textContent = `🚀 INICIAR CARRERA (${playerCount} jugadores)`;
             } else {
                 btn.textContent = '⏳ Esperando jugadores...';
             }
         }
 
-        function updateLeaderboard() {
+        function updateLeaderboardFromServer(teams) {
             const standings = document.getElementById('team-standings');
             standings.innerHTML = '';
             
-            const sortedTeams = [...gameState.teams]
+            const sortedTeams = [...teams]
                 .map((team, index) => ({ ...team, index }))
                 .sort((a, b) => b.score - a.score);
             
@@ -1162,10 +1080,12 @@
         }
 
         function updateUserInfo() {
-            if (!gameState.currentUser) return;
+            if (!gameState.currentUser || !gameState.serverData || !gameState.serverData.teams) return;
             
             const user = gameState.currentUser;
-            const team = gameState.teams[user.team];
+            const team = gameState.serverData.teams[user.team];
+            
+            if (!team) return;
             
             document.getElementById('user-name-display').textContent = user.name;
             document.getElementById('user-team-display').textContent = `${team.emoji} ${team.name}`;
@@ -1177,7 +1097,7 @@
             
             if (connected) {
                 statusElement.className = 'connection-status connected';
-                statusElement.textContent = '🟢 Conectado';
+                statusElement.textContent = '🟢 Sincronizado';
             } else {
                 statusElement.className = 'connection-status disconnected';
                 statusElement.textContent = '🔴 Desconectado';
@@ -1189,38 +1109,35 @@
         // =============================================
         
         async function startGame() {
-            if (gameState.players.length < 1) {
+            if (!gameState.serverData || gameState.serverData.players.length < 1) {
                 showNotification('❌ Se necesita al menos 1 jugador');
                 return;
             }
             
-            // Marquer le jeu comme actif
-            gameState.isGameActive = true;
+            showSyncStatus('🚀 Iniciando carrera...');
             
-            // Essayer de démarrer via l'API
             const response = await apiCall('start');
             
-            if (response.success) {
-                showNotification('🏁 ¡La carrera ha comenzado!');
-            }
+            hideSyncStatus();
             
-            // Démarrer localement (API ou pas)
-            gameState.currentQuestion = 0;
-            showScreen('playing');
-            showQuestion(gameState.challenges[0], 0);
+            if (!response.success) {
+                showNotification(`❌ ${response.error || 'Error al iniciar'}`);
+            }
+            // La sincronización se encargará de mostrar el juego
         }
 
-        function showQuestion(question, questionIndex) {
-            gameState.currentQuestion = questionIndex;
+        function showQuestionFromServer(serverData) {
+            const question = serverData.currentQuestionData;
+            if (!question) return;
             
-            // Limpiar estado anterior
+            // Nettoyer état précédent
             document.getElementById('waiting-next').classList.add('hidden');
             
-            // Actualizar pregunta
+            // Mettre à jour question
             document.getElementById('challenge-type').textContent = question.type;
             document.getElementById('question-text').textContent = question.question;
             
-            // Crear opciones de respuesta
+            // Créer options
             const optionsContainer = document.getElementById('answer-options');
             optionsContainer.innerHTML = '';
             
@@ -1230,21 +1147,31 @@
                 button.textContent = option;
                 button.onclick = () => selectAnswer(index);
                 button.dataset.option = index;
+                
+                // Vérifier si déjà répondu
+                if (gameState.currentUser && gameState.currentUser.lastAnswer && 
+                    gameState.currentUser.lastAnswer.questionIndex === gameState.currentQuestion) {
+                    button.disabled = true;
+                    if (gameState.currentUser.lastAnswer.answer === index) {
+                        button.classList.add('selected');
+                    }
+                }
+                
                 optionsContainer.appendChild(button);
             });
 
-            // Iniciar timer
-            startTimer(question.time);
+            // Démarrer timer local synchronisé
+            const elapsed = (Date.now() - serverData.questionStartTime) / 1000;
+            const timeLeft = Math.max(0, question.time - elapsed);
+            startLocalTimer(Math.ceil(timeLeft));
         }
 
-        function selectAnswer(optionIndex) {
-            if (!gameState.currentUser) return;
+        async function selectAnswer(optionIndex) {
+            if (!gameState.currentUser || !gameState.serverData) return;
             
             const buttons = document.querySelectorAll('.answer-btn');
-            const challenge = gameState.challenges[gameState.currentQuestion];
-            const isCorrect = optionIndex === challenge.correct;
             
-            // Deshabilitar todos los botones
+            // Désactiver tous les boutons
             buttons.forEach(btn => {
                 btn.disabled = true;
                 if (parseInt(btn.dataset.option) === optionIndex) {
@@ -1252,90 +1179,71 @@
                 }
             });
             
-            // Calcular puntos
-            let points = 0;
-            if (isCorrect) {
-                points = challenge.points;
-                gameState.currentUser.score += points;
-                gameState.teams[gameState.currentUser.team].score += points;
-            }
+            showSyncStatus('📤 Enviando respuesta...');
             
-            // Mostrar resultado
-            const message = isCorrect 
-                ? `✅ ¡Correcto! +${points} puntos`
-                : `❌ Incorrecto`;
-            
-            document.getElementById('waiting-next').classList.remove('hidden');
-            document.getElementById('waiting-next').innerHTML = `
-                ${message}<br>
-                <small>Esperando siguiente pregunta...</small>
-            `;
-
-            // Actualizar UI
-            updateUserInfo();
-            updatePlayersList();
-            updateLeaderboard();
-
-            // Auto-avanzar
-            setTimeout(() => {
-                showCorrectAnswer(challenge.correct);
-                setTimeout(() => {
-                    nextQuestion();
-                }, 3000);
-            }, 2000);
-        }
-
-        function showCorrectAnswer(correctIndex) {
-            const buttons = document.querySelectorAll('.answer-btn');
-            
-            buttons.forEach((btn, index) => {
-                btn.disabled = true;
-                if (index === correctIndex) {
-                    btn.classList.add('correct');
-                } else if (btn.classList.contains('selected')) {
-                    btn.classList.add('incorrect');
-                }
+            // Envoyer réponse au serveur
+            const response = await apiCall('answer', {
+                playerId: gameState.currentUser.id,
+                answer: optionIndex,
+                questionIndex: gameState.currentQuestion
             });
-        }
-
-        function nextQuestion() {
-            gameState.currentQuestion++;
             
-            if (gameState.currentQuestion < gameState.challenges.length) {
-                const nextChallenge = gameState.challenges[gameState.currentQuestion];
-                showQuestion(nextChallenge, gameState.currentQuestion);
+            hideSyncStatus();
+            
+            if (response.success) {
+                const message = response.isCorrect 
+                    ? `✅ ¡Correcto! +${response.points} puntos`
+                    : `❌ Incorrecto`;
+                
+                document.getElementById('waiting-next').classList.remove('hidden');
+                document.getElementById('waiting-next').innerHTML = `
+                    ${message}<br>
+                    <small>Esperando otros jugadores...</small>
+                `;
+                
+                // La synchronisation mettra à jour les scores
             } else {
-                endGame();
+                showNotification(`❌ ${response.error || 'Error al enviar respuesta'}`);
+                // Réactiver les boutons en cas d'erreur
+                buttons.forEach(btn => {
+                    btn.disabled = false;
+                    btn.classList.remove('selected');
+                });
             }
         }
 
-        function startTimer(duration) {
-            // Nettoyer le timer précédent
-            if (gameState.currentTimer) {
-                clearInterval(gameState.currentTimer);
-                gameState.currentTimer = null;
+        function startLocalTimer(duration) {
+            // Nettoyer timer précédent
+            if (gameState.localTimer) {
+                clearInterval(gameState.localTimer);
+                gameState.localTimer = null;
             }
 
             let timeLeft = duration;
             updateTimerDisplay(timeLeft);
             
-            gameState.currentTimer = setInterval(() => {
+            if (timeLeft <= 0) return;
+            
+            gameState.localTimer = setInterval(() => {
                 timeLeft--;
                 updateTimerDisplay(timeLeft);
                 
                 if (timeLeft <= 0) {
-                    clearInterval(gameState.currentTimer);
-                    gameState.currentTimer = null;
+                    clearInterval(gameState.localTimer);
+                    gameState.localTimer = null;
                     
-                    // Montrer respuesta correcta
-                    const challenge = gameState.challenges[gameState.currentQuestion];
-                    showCorrectAnswer(challenge.correct);
-                    
-                    // Continuer seulement si le jeu est actif
-                    if (gameState.isGameActive) {
-                        setTimeout(() => {
-                            nextQuestion();
-                        }, 3000);
+                    // Désactiver boutons si pas encore répondu
+                    if (gameState.currentUser && (!gameState.currentUser.lastAnswer || 
+                        gameState.currentUser.lastAnswer.questionIndex !== gameState.currentQuestion)) {
+                        document.querySelectorAll('.answer-btn').forEach(btn => {
+                            btn.disabled = true;
+                        });
+                        
+                        document.getElementById('waiting-next').classList.remove('hidden');
+                        document.getElementById('waiting-next').innerHTML = `
+                            ⏰ Temps écoulé!<br>
+                            <small>Esperando siguiente pregunta...</small>
+                        `;
                     }
                 }
             }, 1000);
@@ -1345,7 +1253,7 @@
             const timerElement = document.getElementById('timer-display');
             timerElement.textContent = `⏱️ ${timeLeft}`;
             
-            // Cambiar color según tiempo restante
+            // Changer couleur selon temps restant
             if (timeLeft <= 5) {
                 timerElement.style.color = '#ff0080';
                 timerElement.style.animation = 'timerPulse 0.5s ease-in-out infinite';
@@ -1357,39 +1265,25 @@
             }
         }
 
-        function endGame() {
-            // Marquer le jeu comme inactif
+        function endGame(finalTeams) {
+            // Marquer jeu comme inactif
             gameState.isGameActive = false;
             
-            // Nettoyer le timer
-            if (gameState.currentTimer) {
-                clearInterval(gameState.currentTimer);
-                gameState.currentTimer = null;
+            // Nettoyer timer
+            if (gameState.localTimer) {
+                clearInterval(gameState.localTimer);
+                gameState.localTimer = null;
             }
 
-            const sortedTeams = [...gameState.teams].sort((a, b) => b.score - a.score);
+            const sortedTeams = [...finalTeams].sort((a, b) => b.score - a.score);
             const winner = sortedTeams[0];
             
             showNotification(`🏆 ¡${winner.emoji} ${winner.name} GANA LA CARRERA! 🏆`);
-            updateLeaderboard();
             
-            // Mostrar clasificación final
+            // Afficher classement final puis retourner en attente
             setTimeout(() => {
                 showScreen('waiting');
                 showNotification('🎮 ¡Juego terminado! Pueden unirse más jugadores para otra partida.');
-                
-                // Reset scores para nouvelle partie
-                gameState.teams.forEach(team => {
-                    team.score = 0;
-                    team.members.forEach(member => member.score = 0);
-                });
-                
-                if (gameState.currentUser) {
-                    gameState.currentUser.score = 0;
-                }
-                
-                updateLeaderboard();
-                updatePlayersList();
             }, 5000);
         }
 
@@ -1405,6 +1299,7 @@
             switch(screenName) {
                 case 'login':
                     document.getElementById('login-screen').classList.remove('hidden');
+                    document.getElementById('user-info').classList.add('hidden');
                     break;
                 case 'waiting':
                     document.getElementById('waiting-lobby').classList.remove('hidden');
@@ -1439,6 +1334,23 @@
             }, 3000);
         }
 
+        function showSyncStatus(message) {
+            let syncStatus = document.querySelector('.sync-status');
+            if (!syncStatus) {
+                syncStatus = document.createElement('div');
+                syncStatus.className = 'sync-status';
+                document.body.appendChild(syncStatus);
+            }
+            syncStatus.textContent = message;
+        }
+
+        function hideSyncStatus() {
+            const syncStatus = document.querySelector('.sync-status');
+            if (syncStatus) {
+                syncStatus.remove();
+            }
+        }
+
         function handleKeyboardShortcuts(event) {
             // Teclas numéricas para respuestas
             if (event.key >= '1' && event.key <= '4' && gameState.phase === 'playing') {
@@ -1449,10 +1361,11 @@
                 }
             }
             
-            // Espacio para iniciar juego en lobby
+            // Espacio para iniciar juego
             if (event.key === ' ' && gameState.phase === 'waiting') {
                 const btn = document.getElementById('start-game-btn');
                 if (!btn.disabled) {
+                    event.preventDefault();
                     startGame();
                 }
             }
@@ -1497,15 +1410,38 @@
                 simulateAnswer: (option) => {
                     selectAnswer(option || 0);
                 },
-                addPlayers: () => {
-                    const names = ['ANA', 'LUIS', 'SOFIA', 'PEDRO', 'CLARA'];
-                    names.forEach((name, i) => {
-                        setTimeout(() => addDemoPlayer(name, i % 5), i * 500);
-                    });
-                }
+                getServerState: getGameState,
+                syncNow: loadGameState
             };
             
             console.log('🔧 Modo debug activado. Comandos:', Object.keys(window.gameDebug));
+        }
+
+        // =============================================
+        // INDICATEUR DE PERFORMANCE
+        // =============================================
+        
+        // Monitoring simple de la latence de sync
+        let syncLatency = 0;
+        const originalGetGameState = getGameState;
+        
+        getGameState = async function() {
+            const start = Date.now();
+            const result = await originalGetGameState();
+            syncLatency = Date.now() - start;
+            
+            // Afficher latence si > 2s
+            if (syncLatency > 2000) {
+                console.warn(`⚠️ Sync lente: ${syncLatency}ms`);
+            }
+            
+            return result;
+        };
+
+        // Exposer stats pour debug
+        if (window.gameDebug) {
+            window.gameDebug.getLatency = () => syncLatency;
+            window.gameDebug.getLastSync = () => new Date(gameState.lastSync).toLocaleTimeString();
         }
     </script>
 </body>
