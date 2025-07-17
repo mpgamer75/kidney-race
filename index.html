@@ -348,12 +348,35 @@
             text-transform: uppercase;
             font-family: 'Orbitron', monospace;
             line-height: 1.3;
+            transform: translateY(0);
         }
 
         .answer-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,255,65,0.5);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(0,255,65,0.6);
             background: linear-gradient(45deg, #555, #777);
+            border-color: #00ff88;
+            text-shadow: 0 0 10px rgba(255,255,255,0.8);
+        }
+
+        .answer-btn:hover::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 0.8s ease-in-out;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .answer-btn:active {
+            transform: translateY(-4px) scale(0.98);
         }
 
         .answer-btn:disabled {
@@ -621,6 +644,9 @@
                 <button id="start-game-btn" class="start-btn" disabled>
                     🚀 INICIAR CARRERA AHORA
                 </button>
+                <button id="leave-game-btn" class="start-btn" style="background: linear-gradient(45deg, #ff4444, #cc0000); margin-top: 10px;">
+                    🚪 SALIR DEL JUEGO
+                </button>
                 <p style="margin-top: 10px; font-size: 0.9em; color: rgba(255,255,255,0.7);">
                     Mínimo: 1 jugador | Máximo: 17 jugadores
                 </p>
@@ -671,6 +697,8 @@
             selectedTeam: null,
             currentQuestion: 0,
             players: [],
+            currentTimer: null, // Pour gérer le timer
+            isGameActive: false, // État du jeu
             teams: [
                 { name: 'RIÑÓN ROJO', emoji: '🏎️', members: [], score: 0 },
                 { name: 'AZUL NEFRÓN', emoji: '🏁', members: [], score: 0 },
@@ -799,7 +827,7 @@
             gameState.teams.forEach(team => team.members = []);
             
             gameState.players.forEach(player => {
-                if (player.team < gameState.teams.length) {
+                if (player.team !== undefined && player.team < gameState.teams.length) {
                     gameState.teams[player.team].members.push(player);
                 }
             });
@@ -812,14 +840,22 @@
         function startPolling() {
             // Polling pour synchronisation en temps réel
             setInterval(async () => {
-                if (gameState.phase === 'waiting') {
+                if (gameState.phase === 'waiting' || gameState.phase === 'playing') {
                     const serverState = await getGameState();
                     if (serverState && serverState.success) {
                         gameState.players = serverState.players || [];
                         updateUIFromServerState();
+                        
+                        // Mettre à jour le classement en temps réel
+                        updateLeaderboard();
+                        
+                        // Vérifier si la session est vide
+                        if (gameState.players.length === 0) {
+                            checkForEmptySession();
+                        }
                     }
                 }
-            }, 3000);
+            }, 2000); // Plus fréquent pour le temps réel
         }
 
         function setupEventListeners() {
@@ -844,6 +880,7 @@
             // Botones
             document.getElementById('join-game-btn').addEventListener('click', joinGame);
             document.getElementById('start-game-btn').addEventListener('click', startGame);
+            document.getElementById('leave-game-btn').addEventListener('click', leaveGame);
 
             // Atajos de teclado
             document.addEventListener('keydown', handleKeyboardShortcuts);
@@ -953,14 +990,67 @@
 
             showNotification(`🎉 ¡Bienvenido ${username}! (Modo offline)`);
 
-            // Añadir jugadores demo en modo offline
-            setTimeout(() => {
-                addDemoPlayer('MARÍA', 0);
-                setTimeout(() => addDemoPlayer('CARLOS', 1), 1000);
-            }, 2000);
+            // Simular que otros jugadores también se conectan (para demo en modo offline)
+            if (!response.success) {
+                setTimeout(() => {
+                    addDemoPlayer('MARÍA', 0);
+                    setTimeout(() => addDemoPlayer('CARLOS', 1), 1000);
+                }, 2000);
+            }
         }
 
-        function addDemoPlayer(name, teamIndex) {
+        async function leaveGame() {
+            if (!gameState.currentUser) return;
+
+            // Confirmer avant de quitter
+            if (!confirm('¿Estás seguro de que quieres salir del juego?')) {
+                return;
+            }
+
+            try {
+                // Notifier le serveur
+                await apiCall('leave', {
+                    playerId: gameState.currentUser.id
+                });
+            } catch (error) {
+                console.log('Error notificando salida al servidor');
+            }
+
+            // Nettoyer localement
+            leaveGameLocally();
+        }
+
+        function leaveGameLocally() {
+            if (!gameState.currentUser) return;
+
+            // Retirer le joueur de la liste locale
+            gameState.players = gameState.players.filter(p => p.id !== gameState.currentUser.id);
+            
+            // Retirer de l'équipe
+            if (gameState.currentUser.team < gameState.teams.length) {
+                gameState.teams[gameState.currentUser.team].members = 
+                    gameState.teams[gameState.currentUser.team].members.filter(m => m.id !== gameState.currentUser.id);
+            }
+
+            // Nettoyer état utilisateur
+            gameState.currentUser = null;
+            gameState.selectedTeam = null;
+
+            // Arrêter timer si actif
+            if (gameState.currentTimer) {
+                clearInterval(gameState.currentTimer);
+                gameState.currentTimer = null;
+            }
+
+            // Retourner au login
+            showScreen('login');
+            showNotification('👋 Has salido del juego');
+
+            // Reset form
+            document.getElementById('username-input').value = '';
+            document.querySelectorAll('.team-option').forEach(option => {
+                option.classList.remove('selected');
+            });
             if (gameState.players.length >= 17) return;
             if (gameState.teams[teamIndex].members.length >= 4) return;
 
@@ -1104,6 +1194,9 @@
                 return;
             }
             
+            // Marquer le jeu comme actif
+            gameState.isGameActive = true;
+            
             // Essayer de démarrer via l'API
             const response = await apiCall('start');
             
@@ -1217,23 +1310,33 @@
         }
 
         function startTimer(duration) {
+            // Nettoyer le timer précédent
+            if (gameState.currentTimer) {
+                clearInterval(gameState.currentTimer);
+                gameState.currentTimer = null;
+            }
+
             let timeLeft = duration;
             updateTimerDisplay(timeLeft);
             
-            const timerInterval = setInterval(() => {
+            gameState.currentTimer = setInterval(() => {
                 timeLeft--;
                 updateTimerDisplay(timeLeft);
                 
                 if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
+                    clearInterval(gameState.currentTimer);
+                    gameState.currentTimer = null;
                     
-                    // Mostrar respuesta correcta
+                    // Montrer respuesta correcta
                     const challenge = gameState.challenges[gameState.currentQuestion];
                     showCorrectAnswer(challenge.correct);
                     
-                    setTimeout(() => {
-                        nextQuestion();
-                    }, 3000);
+                    // Continuer seulement si le jeu est actif
+                    if (gameState.isGameActive) {
+                        setTimeout(() => {
+                            nextQuestion();
+                        }, 3000);
+                    }
                 }
             }, 1000);
         }
@@ -1255,6 +1358,15 @@
         }
 
         function endGame() {
+            // Marquer le jeu comme inactif
+            gameState.isGameActive = false;
+            
+            // Nettoyer le timer
+            if (gameState.currentTimer) {
+                clearInterval(gameState.currentTimer);
+                gameState.currentTimer = null;
+            }
+
             const sortedTeams = [...gameState.teams].sort((a, b) => b.score - a.score);
             const winner = sortedTeams[0];
             
@@ -1265,6 +1377,19 @@
             setTimeout(() => {
                 showScreen('waiting');
                 showNotification('🎮 ¡Juego terminado! Pueden unirse más jugadores para otra partida.');
+                
+                // Reset scores para nouvelle partie
+                gameState.teams.forEach(team => {
+                    team.score = 0;
+                    team.members.forEach(member => member.score = 0);
+                });
+                
+                if (gameState.currentUser) {
+                    gameState.currentUser.score = 0;
+                }
+                
+                updateLeaderboard();
+                updatePlayersList();
             }, 5000);
         }
 

@@ -45,6 +45,8 @@ exports.handler = async (event, context) => {
             switch (action) {
                 case 'join':
                     return handleJoinGame(playerName, teamIndex, headers);
+                case 'leave':
+                    return handleLeaveGame(playerId, headers);
                 case 'start':
                     return handleStartGame(headers);
                 case 'answer':
@@ -123,6 +125,49 @@ function handleJoinGame(playerName, teamIndex, headers) {
             body: JSON.stringify({
                 success: true,
                 player: player,
+                totalPlayers: gameData.players.length
+            })
+        };
+
+    } catch (error) {
+        return {
+            statusCode: 500,
+            headers,
+            body: JSON.stringify({ error: error.message })
+        };
+    }
+}
+
+function handleLeaveGame(playerId, headers) {
+    try {
+        const playerIndex = gameData.players.findIndex(p => p.id === playerId);
+        
+        if (playerIndex === -1) {
+            return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ error: 'Jugador no encontrado' })
+            };
+        }
+
+        // Retirer le joueur
+        gameData.players.splice(playerIndex, 1);
+
+        // Si plus aucun joueur, reset complet
+        if (gameData.players.length === 0) {
+            gameData = {
+                players: [],
+                gameStatus: 'waiting',
+                currentQuestion: 0
+            };
+        }
+
+        return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({
+                success: true,
+                message: 'Jugador retirado',
                 totalPlayers: gameData.players.length
             })
         };
