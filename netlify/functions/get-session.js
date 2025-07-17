@@ -1,9 +1,8 @@
-const { createClient } = require('@supabase/supabase-js');
+// netlify/functions/get-session.js
 
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY
-);
+// Simulation d'une base de données en mémoire
+const sessions = new Map();
+const players = new Map();
 
 exports.handler = async (event, context) => {
     const headers = {
@@ -26,6 +25,7 @@ exports.handler = async (event, context) => {
 
     try {
         const { sessionCode } = event.queryStringParameters || {};
+        console.log('🔍 Getting session:', sessionCode);
         
         if (!sessionCode) {
             return {
@@ -35,34 +35,29 @@ exports.handler = async (event, context) => {
             };
         }
 
-        const { data: session } = await supabase
-            .from('game_sessions')
-            .select('*')
-            .eq('instructor_code', sessionCode)
-            .single();
+        // Simuler session trouvée
+        const session = {
+            id: sessionCode,
+            instructor_code: sessionCode,
+            status: 'waiting',
+            current_question: 0
+        };
 
-        if (!session) {
-            return {
-                statusCode: 404,
-                headers,
-                body: JSON.stringify({ error: 'Session not found' })
-            };
+        // Simuler joueurs (vide au début)
+        const playersInSession = Array.from(players.values())
+            .filter(p => p.session_id === sessionCode);
+
+        // Simuler équipes
+        const teamScores = [];
+        for (let i = 0; i < 5; i++) {
+            teamScores.push({
+                session_id: sessionCode,
+                team_index: i,
+                total_score: 0
+            });
         }
 
-        // Obtener jugadores
-        const { data: players } = await supabase
-            .from('players')
-            .select('*')
-            .eq('session_id', session.id)
-            .eq('is_connected', true)
-            .order('joined_at');
-
-        // Obtener puntuaciones de equipos
-        const { data: teamScores } = await supabase
-            .from('team_scores')
-            .select('*')
-            .eq('session_id', session.id)
-            .order('team_index');
+        console.log('✅ Session found:', { session, players: playersInSession.length });
 
         return {
             statusCode: 200,
@@ -70,11 +65,12 @@ exports.handler = async (event, context) => {
             body: JSON.stringify({
                 success: true,
                 session: session,
-                players: players || [],
-                teamScores: teamScores || []
+                players: playersInSession,
+                teamScores: teamScores
             })
         };
     } catch (error) {
+        console.error('❌ Error getting session:', error);
         return {
             statusCode: 500,
             headers,

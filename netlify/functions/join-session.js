@@ -1,22 +1,21 @@
-const { createClient } = require('@supabase/supabase-js');
+// netlify/functions/get-session.js
 
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY
-);
+// Simulation d'une base de données en mémoire
+const sessions = new Map();
+const players = new Map();
 
 exports.handler = async (event, context) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+        'Access-Control-Allow-Methods': 'GET, OPTIONS'
     };
 
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 200, headers, body: '' };
     }
 
-    if (event.httpMethod !== 'POST') {
+    if (event.httpMethod !== 'GET') {
         return {
             statusCode: 405,
             headers,
@@ -25,64 +24,53 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        const { sessionId, username, teamIndex } = JSON.parse(event.body);
+        const { sessionCode } = event.queryStringParameters || {};
+        console.log('🔍 Getting session:', sessionCode);
         
-        // Verificar límite de equipo
-        const { data: teamPlayers } = await supabase
-            .from('players')
-            .select('*')
-            .eq('session_id', sessionId)
-            .eq('team_index', teamIndex)
-            .eq('is_connected', true);
-
-        if (teamPlayers && teamPlayers.length >= 4) {
+        if (!sessionCode) {
             return {
                 statusCode: 400,
                 headers,
-                body: JSON.stringify({ error: 'El equipo está completo' })
+                body: JSON.stringify({ error: 'Session code required' })
             };
         }
 
-        // Verificar nombre único
-        const { data: existingPlayer } = await supabase
-            .from('players')
-            .select('*')
-            .eq('session_id', sessionId)
-            .eq('username', username)
-            .eq('is_connected', true);
+        // Simuler session trouvée
+        const session = {
+            id: sessionCode,
+            instructor_code: sessionCode,
+            status: 'waiting',
+            current_question: 0
+        };
 
-        if (existingPlayer && existingPlayer.length > 0) {
-            return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({ error: 'Ese nombre ya está en uso' })
-            };
+        // Simuler joueurs (vide au début)
+        const playersInSession = Array.from(players.values())
+            .filter(p => p.session_id === sessionCode);
+
+        // Simuler équipes
+        const teamScores = [];
+        for (let i = 0; i < 5; i++) {
+            teamScores.push({
+                session_id: sessionCode,
+                team_index: i,
+                total_score: 0
+            });
         }
 
-        // Crear jugador
-        const { data: player, error } = await supabase
-            .from('players')
-            .insert([{
-                session_id: sessionId,
-                username: username,
-                team_index: teamIndex,
-                score: 0,
-                is_connected: true
-            }])
-            .select()
-            .single();
-
-        if (error) throw error;
+        console.log('✅ Session found:', { session, players: playersInSession.length });
 
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
                 success: true,
-                player: player
+                session: session,
+                players: playersInSession,
+                teamScores: teamScores
             })
         };
     } catch (error) {
+        console.error('❌ Error getting session:', error);
         return {
             statusCode: 500,
             headers,

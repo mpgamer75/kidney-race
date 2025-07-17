@@ -990,11 +990,23 @@
         async function createNewSession() {
             try {
                 console.log('🎯 Creando nueva sesión...');
-                const response = await apiCall('create-session');
                 
-                if (response.success) {
-                    gameState.sessionId = response.session.id;
-                    const sessionCode = response.session.instructor_code;
+                // Essayer GET d'abord (plus simple pour Netlify)
+                const response = await fetch(`${API_BASE}/create-session`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                console.log('✅ Response:', result);
+                
+                if (result.success) {
+                    gameState.sessionId = result.session.id;
+                    const sessionCode = result.session.instructor_code;
                     
                     console.log('✅ Sesión creada:', { id: gameState.sessionId, code: sessionCode });
                     
@@ -1008,7 +1020,7 @@
                     
                     showNotification(`✅ Sesión creada: ${sessionCode}`);
                 } else {
-                    throw new Error(response.error || 'Error desconocido');
+                    throw new Error(result.error || 'Error desconocido');
                 }
             } catch (error) {
                 console.error('❌ Error creando sesión:', error);
@@ -1021,7 +1033,7 @@
                 document.getElementById('session-code-display').classList.remove('hidden');
                 
                 showNotification(`⚠️ Modo offline: ${sessionCode}`);
-                showNotification('🔧 Las Netlify Functions no están disponibles');
+                showNotification('🔧 Functions no disponibles - Modo local activado');
             }
         }
 

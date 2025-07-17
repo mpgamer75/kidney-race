@@ -1,22 +1,19 @@
-const { createClient } = require('@supabase/supabase-js');
-
-const supabase = createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_ANON_KEY
-);
+// netlify/functions/create-session.js
 
 exports.handler = async (event, context) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
     };
 
+    // Gérer OPTIONS pour CORS
     if (event.httpMethod === 'OPTIONS') {
         return { statusCode: 200, headers, body: '' };
     }
 
-    if (event.httpMethod !== 'POST') {
+    // Accepter GET ET POST pour cette function
+    if (event.httpMethod !== 'POST' && event.httpMethod !== 'GET') {
         return {
             statusCode: 405,
             headers,
@@ -25,30 +22,18 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        const sessionCode = generateSessionCode();
+        console.log('🎯 Creating session...');
         
-        const { data: session, error } = await supabase
-            .from('game_sessions')
-            .insert([{
-                instructor_code: sessionCode,
-                status: 'waiting',
-                created_at: new Date()
-            }])
-            .select()
-            .single();
+        // Simuler création de session (sans Supabase pour test)
+        const sessionCode = generateSessionCode();
+        const session = {
+            id: sessionCode,
+            instructor_code: sessionCode,
+            status: 'waiting',
+            created_at: new Date().toISOString()
+        };
 
-        if (error) throw error;
-
-        // Crear equipos iniciales
-        for (let i = 0; i < 5; i++) {
-            await supabase
-                .from('team_scores')
-                .insert([{
-                    session_id: session.id,
-                    team_index: i,
-                    total_score: 0
-                }]);
-        }
+        console.log('✅ Session created:', session);
 
         return {
             statusCode: 200,
@@ -59,10 +44,14 @@ exports.handler = async (event, context) => {
             })
         };
     } catch (error) {
+        console.error('❌ Error creating session:', error);
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({ error: error.message })
+            body: JSON.stringify({ 
+                success: false, 
+                error: error.message 
+            })
         };
     }
 };
