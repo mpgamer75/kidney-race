@@ -715,6 +715,11 @@
         // CONFIGURACIÓN DEL JUEGO
         // =============================================
         
+        // Detectar entorno de producción
+        const IS_PRODUCTION = window.location.hostname !== 'localhost' && 
+                             window.location.hostname !== '127.0.0.1' && 
+                             !window.location.hostname.includes('localhost');
+        
         let gameState = {
             phase: 'login',
             currentUser: null,
@@ -839,10 +844,14 @@
             const sessionCode = urlParams.get('code');
             const isAdmin = urlParams.get('admin') === 'true';
             
+            console.log('🔍 URL params:', { sessionCode, isAdmin });
+            
             if (isAdmin) {
                 gameState.isAdmin = true;
+                console.log('👨‍💼 Modo admin activado');
                 createNewSession();
             } else if (sessionCode) {
+                console.log('🔗 Uniéndose a sesión:', sessionCode);
                 joinSessionByCode(sessionCode);
             }
             
@@ -886,6 +895,8 @@
 
         async function apiCall(endpoint, data = null) {
             try {
+                console.log(`🔗 API Call: ${endpoint}`, data);
+                
                 const options = {
                     method: data ? 'POST' : 'GET',
                     headers: { 'Content-Type': 'application/json' }
@@ -895,10 +906,21 @@
                     options.body = JSON.stringify(data);
                 }
                 
-                const response = await fetch(`${API_BASE}/${endpoint}`, options);
-                return await response.json();
+                const url = `${API_BASE}/${endpoint}`;
+                console.log(`📡 Calling: ${url}`);
+                
+                const response = await fetch(url, options);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                console.log(`✅ API Response:`, result);
+                
+                return result;
             } catch (error) {
-                console.error('API Error:', error);
+                console.error('❌ API Error:', error);
                 throw error;
             }
         }
@@ -967,11 +989,14 @@
         
         async function createNewSession() {
             try {
+                console.log('🎯 Creando nueva sesión...');
                 const response = await apiCall('create-session');
                 
                 if (response.success) {
                     gameState.sessionId = response.session.id;
                     const sessionCode = response.session.instructor_code;
+                    
+                    console.log('✅ Sesión creada:', { id: gameState.sessionId, code: sessionCode });
                     
                     // Mostrar código de sesión
                     document.getElementById('session-code').textContent = sessionCode;
@@ -979,16 +1004,34 @@
                     
                     // Actualizar URL
                     const shareUrl = `${window.location.origin}?code=${sessionCode}`;
-                    console.log('URL para compartir:', shareUrl);
+                    console.log('🔗 URL para compartir:', shareUrl);
                     
                     showNotification(`✅ Sesión creada: ${sessionCode}`);
                 } else {
-                    throw new Error(response.error);
+                    throw new Error(response.error || 'Error desconocido');
                 }
             } catch (error) {
-                showNotification('❌ Error creando sesión');
-                console.error('Error:', error);
+                console.error('❌ Error creando sesión:', error);
+                
+                // Fallback: crear sesión local temporal
+                const sessionCode = generateSessionCode();
+                gameState.sessionId = sessionCode;
+                
+                document.getElementById('session-code').textContent = sessionCode;
+                document.getElementById('session-code-display').classList.remove('hidden');
+                
+                showNotification(`⚠️ Modo offline: ${sessionCode}`);
+                showNotification('🔧 Las Netlify Functions no están disponibles');
             }
+        }
+
+        function generateSessionCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < 6; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
         }
 
         async function joinSessionByCode(sessionCode) {
