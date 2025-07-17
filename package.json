@@ -1,0 +1,32 @@
+{
+  "name": "kidney-racing-championship",
+  "version": "1.0.0",
+  "description": "Multiplayer educational game about renal system",
+  "main": "api/socket.js",
+  "scripts": {
+    "start": "node api/socket.js",
+    "dev": "nodemon api/socket.js",
+    "build": "echo 'No build process needed'"
+  },
+  "keywords": [
+    "game",
+    "education",
+    "multiplayer",
+    "socket.io",
+    "medical",
+    "kidney"
+  ],
+  "author": "Kidney Racing Championship",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.4",
+    "@supabase/supabase-js": "^2.39.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

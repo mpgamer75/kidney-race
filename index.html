@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏁 KIDNEY RACING CHAMPIONSHIP</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', monospace;
+            background: linear-gradient(45deg, #0f0f23, #1a1a3a, #2d1b69, #0f0f23);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .title {
+            font-size: 3.5em;
+            font-weight: 900;
+            color: #00ff41;
+            text-shadow: 0 0 30px #00ff41, 0 0 60px #00ff41;
+            margin-bottom: 10px;
+            animation: titlePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes titlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            color: #ffaa00;
+            text-shadow: 0 0 20px #ffaa00;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* LOGIN SCREEN */
+        .login-screen {
+            background: linear-gradient(135deg, #0f0f23, #2d1b69);
+            border: 3px solid #00ff41;
+            border-radius: 20px;
+            padding: 50px;
+            text-align: center;
+            max-width: 600px;
+            margin: 50px auto;
+            box-shadow: 0 0 50px rgba(0,255,65,0.3);
+        }
+
+        .login-title {
+            font-size: 2.5em;
+            font-weight: 900;
+            color: #00ff41;
+            margin-bottom: 30px;
+            text-shadow: 0 0 30px #00ff41;
+        }
+
+        .username-input {
+            width: 100%;
+            padding: 20px;
+            font-size: 1.3em;
+            font-family: 'Orbitron', monospace;
+            background: rgba(255,255,255,0.1);
+            border: 3px solid #00ff41;
+            border-radius: 15px;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+        }
+
+        .username-input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .team-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .team-option {
+            background: linear-gradient(45deg, #333, #555);
+            border: 3px solid #00ff41;
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        .team-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,255,65,0.5);
+            background: linear-gradient(45deg, #555, #777);
+        }
+
+        .team-option.selected {
+            background: linear-gradient(45deg, #00ff41, #00aa2f);
+            color: #000;
+            border-color: #fff;
+        }
+
+        .join-btn {
+            background: linear-gradient(45deg, #ff0080, #8000ff);
+            color: #fff;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 25px;
+            font-size: 1.2em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-family: 'Orbitron', monospace;
+            box-shadow: 0 5px 20px rgba(255,0,128,0.4);
+            width: 100%;
+        }
+
+        .join-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255,0,128,0.6);
+        }
+
+        .join-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* WAITING LOBBY */
+        .waiting-lobby {
+            background: linear-gradient(135deg, #0f0f23, #2d1b69);
+            border: 3px solid #00ff41;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .lobby-title {
+            font-size: 2.5em;
+            font-weight: 900;
+            color: #00ff41;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px #00ff41;
+        }
+
+        .waiting-message {
+            font-size: 1.3em;
+            color: #ffaa00;
+            margin-bottom: 30px;
+            animation: waitingPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes waitingPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .team-card {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #00ff41;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .team-card h3 {
+            color: #ffaa00;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .team-members {
+            list-style: none;
+            padding: 0;
+        }
+
+        .team-members li {
+            background: rgba(255,255,255,0.1);
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 0.9em;
+        }
+
+        /* GAME SCREEN */
+        .game-screen {
+            text-align: center;
+        }
+
+        .question-display {
+            background: linear-gradient(135deg, #ff0080, #8000ff, #0080ff);
+            border: 3px solid #00ff41;
+            border-radius: 20px;
+            padding: 40px;
+            margin: 30px 0;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,255,65,0.5);
+        }
+
+        .challenge-type {
+            font-size: 1.8em;
+            font-weight: 900;
+            margin-bottom: 20px;
+            color: #00ff41;
+            text-shadow: 0 0 20px #00ff41;
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.4em;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .timer-display {
+            font-size: 3em;
+            font-weight: 900;
+            color: #ff0080;
+            text-shadow: 0 0 30px #ff0080;
+            margin-bottom: 20px;
+            animation: timerPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes timerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .answer-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .answer-btn {
+            background: linear-gradient(45deg, #333, #555);
+            color: #fff;
+            border: 3px solid #00ff41;
+            padding: 25px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            font-family: 'Orbitron', monospace;
+        }
+
+        .answer-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,255,65,0.5);
+            background: linear-gradient(45deg, #555, #777);
+        }
+
+        .answer-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .answer-btn.selected {
+            background: linear-gradient(45deg, #ffaa00, #ff8800);
+            border-color: #fff;
+            animation: selectedPulse 0.6s ease-in-out;
+        }
+
+        .answer-btn.correct {
+            background: linear-gradient(45deg, #00ff41, #00aa2f);
+            animation: correctPulse 0.6s ease-in-out;
+        }
+
+        .answer-btn.incorrect {
+            background: linear-gradient(45deg, #ff0080, #cc0066);
+            animation: incorrectShake 0.6s ease-in-out;
+        }
+
+        @keyframes selectedPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes incorrectShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* LEADERBOARD */
+        .leaderboard {
+            background: linear-gradient(135deg, #333, #555);
+            border: 3px solid #00ff41;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+        }
+
+        .leaderboard-title {
+            text-align: center;
+            font-size: 2em;
+            font-weight: 900;
+            color: #00ff41;
+            margin-bottom: 25px;
+            text-shadow: 0 0 30px #00ff41;
+        }
+
+        .team-standings {
+            display: grid;
+            gap: 15px;
+        }
+
+        .team-standing {
+            display: flex;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .team-standing:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(5px);
+        }
+
+        .standing-position {
+            font-size: 2em;
+            font-weight: 900;
+            margin-right: 20px;
+            min-width: 60px;
+        }
+
+        .standing-team {
+            flex: 1;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .standing-score {
+            font-size: 1.5em;
+            font-weight: 900;
+            color: #ffaa00;
+            text-shadow: 0 0 15px #ffaa00;
+        }
+
+        .standing-players {
+            font-size: 0.8em;
+            color: rgba(255,255,255,0.7);
+            margin-top: 5px;
+        }
+
+        /* ADMIN CONTROLS */
+        .admin-controls {
+            background: rgba(255,0,128,0.2);
+            border: 2px solid #ff0080;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .admin-btn {
+            background: linear-gradient(45deg, #ff0080, #8000ff);
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-family: 'Orbitron', monospace;
+            margin: 0 10px;
+            box-shadow: 0 5px 20px rgba(255,0,128,0.4);
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(255,0,128,0.6);
+        }
+
+        .admin-btn.danger {
+            background: linear-gradient(45deg, #ff4444, #cc0000);
+        }
+
+        /* UTILITY CLASSES */
+        .hidden {
+            display: none !important;
+        }
+
+        .user-info {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid #00ff41;
+            z-index: 1000;
+        }
+
+        .user-name {
+            color: #00ff41;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .user-team {
+            color: #ffaa00;
+            font-size: 0.9em;
+        }
+
+        .notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, #00ff41, #00aa2f);
+            color: #000;
+            padding: 30px 50px;
+            border-radius: 20px;
+            font-size: 1.5em;
+            font-weight: 900;
+            z-index: 2000;
+            box-shadow: 0 0 50px rgba(0,255,65,0.8);
+            animation: notificationPop 0.5s ease-out;
+        }
+
+        @keyframes notificationPop {
+            0% { transform: translate(-50%, -50%) scale(0); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .connection-status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            z-index: 1000;
+        }
+
+        .connection-status.connected {
+            background: rgba(0,255,65,0.2);
+            border: 1px solid #00ff41;
+            color: #00ff41;
+        }
+
+        .connection-status.disconnected {
+            background: rgba(255,0,128,0.2);
+            border: 1px solid #ff0080;
+            color: #ff0080;
+            animation: disconnectedBlink 1s ease-in-out infinite;
+        }
+
+        @keyframes disconnectedBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-header">
+            <h1 class="title">🏁 KIDNEY RACING CHAMPIONSHIP</h1>
+            <p class="subtitle">🫘 MULTIPLAYER RENAL SYSTEM RACE 🫘</p>
+        </div>
+
+        <!-- LOGIN SCREEN -->
+        <div id="login-screen" class="login-screen">
+            <h2 class="login-title">🎮 UNIRSE A LA CARRERA</h2>
+            <input type="text" id="username-input" class="username-input" placeholder="INGRESA TU NOMBRE" maxlength="20">
+            
+            <div class="team-selector">
+                <div class="team-option" data-team="0">
+                    🏎️<br>EQUIPO RIÑÓN ROJO
+                    <div class="team-count" id="team-0-count">0/4 jugadores</div>
+                </div>
+                <div class="team-option" data-team="1">
+                    🏁<br>EQUIPO AZUL NEFRÓN
+                    <div class="team-count" id="team-1-count">0/4 jugadores</div>
+                </div>
+                <div class="team-option" data-team="2">
+                    🚗<br>EQUIPO AMARILLO FILTRO
+                    <div class="team-count" id="team-2-count">0/4 jugadores</div>
+                </div>
+                <div class="team-option" data-team="3">
+                    🏎️<br>EQUIPO VERDE HOMEOSTASIS
+                    <div class="team-count" id="team-3-count">0/4 jugadores</div>
+                </div>
+                <div class="team-option" data-team="4">
+                    🏁<br>EQUIPO PÚRPURA UREA
+                    <div class="team-count" id="team-4-count">0/4 jugadores</div>
+                </div>
+            </div>
+            
+            <button id="join-game-btn" class="join-btn" disabled>🚀 UNIRSE AL JUEGO</button>
+        </div>
+
+        <!-- WAITING LOBBY -->
+        <div id="waiting-lobby" class="waiting-lobby hidden">
+            <h2 class="lobby-title">🏁 SALA DE ESPERA</h2>
+            <p class="waiting-message">Esperando que el instructor inicie la carrera...</p>
+            
+            <div class="players-grid" id="players-grid"></div>
+
+            <!-- Solo visible para el instructor -->
+            <div id="admin-controls" class="admin-controls hidden">
+                <h3>🎯 CONTROLES DE INSTRUCTOR</h3>
+                <button id="start-race-btn" class="admin-btn">🚀 INICIAR CARRERA</button>
+                <button id="reset-game-btn" class="admin-btn danger">🔄 RESETEAR JUEGO</button>
+            </div>
+        </div>
+
+        <!-- GAME SCREEN -->
+        <div id="game-screen" class="game-screen hidden">
+            <div class="question-display">
+                <div id="challenge-type" class="challenge-type">⚡ DESAFÍO RELÁMPAGO</div>
+                <div id="timer-display" class="timer-display">⏱️ 20</div>
+                <div id="question-text" class="question-text">Preparándose para el siguiente desafío...</div>
+                <div id="answer-options" class="answer-options"></div>
+            </div>
+
+            <div id="waiting-next" class="hidden" style="text-align: center; font-size: 1.5em; color: #ffaa00; margin: 30px 0;">
+                🏁 Esperando siguiente pregunta...
+            </div>
+        </div>
+
+        <!-- LEADERBOARD -->
+        <div id="leaderboard" class="leaderboard">
+            <h2 class="leaderboard-title">🏆 CLASIFICACIÓN ACTUAL</h2>
+            <div id="team-standings" class="team-standings"></div>
+        </div>
+
+        <!-- USER INFO -->
+        <div id="user-info" class="user-info hidden">
+            <div class="user-name" id="user-name-display"></div>
+            <div class="user-team" id="user-team-display"></div>
+        </div>
+
+        <!-- CONNECTION STATUS -->
+        <div id="connection-status" class="connection-status connected">
+            🟢 Conectado
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        // GAME STATE & CONFIGURATION
+        // =============================================
+        
+        let gameState = {
+            phase: 'login', // login, waiting, playing, finished
+            currentQuestion: 0,
+            timer: 20,
+            users: new Map(),
+            teams: [
+                { name: 'RIÑÓN ROJO', emoji: '🏎️', members: [], score: 0 },
+                { name: 'AZUL NEFRÓN', emoji: '🏁', members: [], score: 0 },
+                { name: 'AMARILLO FILTRO', emoji: '🚗', members: [], score: 0 },
+                { name: 'VERDE HOMEOSTASIS', emoji: '🏎️', members: [], score: 0 },
+                { name: 'PÚRPURA UREA', emoji: '🏁', members: [], score: 0 }
+            ],
+            currentUser: null,
+            isAdmin: false,
+            timerInterval: null,
+            currentAnswers: new Map()
+        };
+
+        const challenges = [
+            {
+                type: "⚡ DESAFÍO RELÁMPAGO",
+                difficulty: 2,
+                time: 20,
+                question: "¿Qué estructura del nefrón es responsable de la filtración selectiva de proteínas plasmáticas?",
+                options: ["Cápsula de Bowman", "Barrera de filtración glomerular", "Túbulo contorneado proximal", "Asa de Henle"],
+                correct: 1,
+                points: 15
+            },
+            {
+                type: "🧩 IDENTIFICACIÓN",
+                difficulty: 2,
+                time: 20,
+                question: "¿Cuál es la hormona que regula la reabsorción de sodio en el túbulo distal?",
+                options: ["ADH", "Aldosterona", "Eritropoyetina", "Renina"],
+                correct: 1,
+                points: 15
+            },
+            {
+                type: "🚀 BONUS RACE",
+                difficulty: 4,
+                time: 25,
+                question: "En la acidosis metabólica, ¿qué células del túbulo distal secretan H+ y reabsorben HCO3-?",
+                options: ["Células principales", "Células intercaladas tipo A", "Células intercaladas tipo B", "Podocitos"],
+                correct: 1,
+                points: 30
+            },
+            {
+                type: "⚡ DESAFÍO RELÁMPAGO",
+                difficulty: 3,
+                time: 20,
+                question: "¿Qué valor de clearance de creatinina indica insuficiencia renal crónica estadio 3?",
+                options: ["90-120 mL/min", "60-89 mL/min", "30-59 mL/min", "15-29 mL/min"],
+                correct: 2,
+                points: 20
+            },
+            {
+                type: "🧩 IDENTIFICACIÓN",
+                difficulty: 3,
+                time: 25,
+                question: "¿Qué transportador en el túbulo proximal es inhibido por los diuréticos de asa?",
+                options: ["NCC", "NKCC2", "ENaC", "AQP2"],
+                correct: 1,
+                points: 20
+            },
+            {
+                type: "🚀 BONUS RACE",
+                difficulty: 5,
+                time: 30,
+                question: "¿Cuál es el mecanismo de retroalimentación tubuloglomerular que regula la TFG?",
+                options: ["Mácula densa → renina", "Mácula densa → adenosina → vasoconstricción", "Podocitos → óxido nítrico", "Mesangio → endotelina"],
+                correct: 1,
+                points: 40
+            },
+            {
+                type: "⚡ DESAFÍO RELÁMPAGO",
+                difficulty: 2,
+                time: 20,
+                question: "¿Qué célula del aparato yuxtaglomerular secreta renina?",
+                options: ["Células de la mácula densa", "Células yuxtaglomerulares", "Células mesangiales", "Podocitos"],
+                correct: 1,
+                points: 15
+            },
+            {
+                type: "🧩 IDENTIFICACIÓN",
+                difficulty: 3,
+                time: 25,
+                question: "¿Qué estructura permite la concentración de orina mediante el mecanismo de contracorriente?",
+                options: ["Glomérulo", "Túbulo proximal", "Asa de Henle", "Túbulo distal"],
+                correct: 2,
+                points: 20
+            },
+            {
+                type: "🚀 BONUS RACE",
+                difficulty: 5,
+                time: 35,
+                question: "En la enfermedad renal crónica, ¿a partir de qué estadio se debe considerar diálisis?",
+                options: ["Estadio 3 (TFG 30-59)", "Estadio 4 (TFG 15-29)", "Estadio 5 (TFG <15)", "Cualquier estadio con síntomas"],
+                correct: 2,
+                points: 45
+            },
+            {
+                type: "⚡ DESAFÍO RELÁMPAGO",
+                difficulty: 2,
+                time: 20,
+                question: "¿Qué hormona estimula la síntesis de eritropoyetina?",
+                options: ["Hipoxia", "Hipercapnia", "Hiponatremia", "Hipercalemia"],
+                correct: 0,
+                points: 15
+            }
+        ];
+
+        // =============================================
+        // INITIALIZATION
+        // =============================================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeGame();
+            setupEventListeners();
+            
+            // Check if user is admin (first to join or has admin flag)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('admin') === 'true') {
+                gameState.isAdmin = true;
+            }
+        });
+
+        function initializeGame() {
+            // Simulate loading saved game state (in a real app, this would be from a server)
+            updateTeamCounts();
+            updateLeaderboard();
+            showScreen('login');
+        }
+
+        function setupEventListeners() {
+            // Username input
+            const usernameInput = document.getElementById('username-input');
+            usernameInput.addEventListener('input', validateJoinButton);
+            usernameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    joinGame();
+                }
+            });
+
+            // Team selection
+            document.querySelectorAll('.team-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    selectTeam(parseInt(this.dataset.team));
+                });
+            });
+
+            // Join game button
+            document.getElementById('join-game-btn').addEventListener('click', joinGame);
+
+            // Admin controls
+            document.getElementById('start-race-btn').addEventListener('click', startRace);
+            document.getElementById('reset-game-btn').addEventListener('click', resetGame);
+        }
+
+        // =============================================
+        // USER MANAGEMENT
+        // =============================================
+        
+        function selectTeam(teamIndex) {
+            // Check if team is full
+            if (gameState.teams[teamIndex].members.length >= 4) {
+                showNotification('⚠️ Equipo completo. Elige otro equipo.');
+                return;
+            }
+
+            // Update UI
+            document.querySelectorAll('.team-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.querySelector(`[data-team="${teamIndex}"]`).classList.add('selected');
+            
+            gameState.selectedTeam = teamIndex;
+            validateJoinButton();
+        }
+
+        function validateJoinButton() {
+            const username = document.getElementById('username-input').value.trim();
+            const hasTeam = gameState.selectedTeam !== undefined;
+            const btn = document.getElementById('join-game-btn');
+            
+            btn.disabled = !username || !hasTeam || username.length < 2;
+        }
+
+        function joinGame() {
+            const username = document.getElementById('username-input').value.trim();
+            const teamIndex = gameState.selectedTeam;
+            
+            if (!username || teamIndex === undefined) {
+                showNotification('❌ Ingresa tu nombre y selecciona un equipo');
+                return;
+            }
+
+            // Check if username already exists
+            const existingUser = Array.from(gameState.users.values()).find(user => user.name === username);
+            if (existingUser) {
+                showNotification('❌ Ese nombre ya está en uso');
+                return;
+            }
+
+            // Create user
+            const userId = generateUserId();
+            const user = {
+                id: userId,
+                name: username,
+                team: teamIndex,
+                score: 0,
+                connected: true
+            };
+
+            // Add user to game state
+            gameState.users.set(userId, user);
+            gameState.teams[teamIndex].members.push(user);
+            gameState.currentUser = user;
+
+            // Update UI
+            updateUserInfo();
+            updateTeamCounts();
+            updatePlayersGrid();
+            showScreen('waiting');
+
+            showNotification(`🎉 ¡Bienvenido ${username}!`);
+        }
+
+        function generateUserId() {
+            return 'user_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // =============================================
+        // SCREEN MANAGEMENT
+        // =============================================
+        
+        function showScreen(screenName) {
+            // Hide all screens
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('waiting-lobby').classList.add('hidden');
+            document.getElementById('game-screen').classList.add('hidden');
+            
+            // Show target screen
+            switch(screenName) {
+                case 'login':
+                    document.getElementById('login-screen').classList.remove('hidden');
+                    break;
+                case 'waiting':
+                    document.getElementById('waiting-lobby').classList.remove('hidden');
+                    document.getElementById('user-info').classList.remove('hidden');
+                    if (gameState.isAdmin) {
+                        document.getElementById('admin-controls').classList.remove('hidden');
+                    }
+                    break;
+                case 'playing':
+                    document.getElementById('game-screen').classList.remove('hidden');
+                    document.getElementById('user-info').classList.remove('hidden');
+                    break;
+            }
+            
+            gameState.phase = screenName;
+        }
+
+        // =============================================
+        // UI UPDATES
+        // =============================================
+        
+        function updateUserInfo() {
+            if (!gameState.currentUser) return;
+            
+            const user = gameState.currentUser;
+            const team = gameState.teams[user.team];
+            
+            document.getElementById('user-name-display').textContent = user.name;
+            document.getElementById('user-team-display').textContent = `${team.emoji} ${team.name}`;
+        }
+
+        function updateTeamCounts() {
+            gameState.teams.forEach((team, index) => {
+                const countElement = document.getElementById(`team-${index}-count`);
+                if (countElement) {
+                    countElement.textContent = `${team.members.length}/4 jugadores`;
+                    
+                    // Disable team if full
+                    const teamOption = document.querySelector(`[data-team="${index}"]`);
+                    if (team.members.length >= 4) {
+                        teamOption.style.opacity = '0.5';
+                        teamOption.style.cursor = 'not-allowed';
+                    } else {
+                        teamOption.style.opacity = '1';
+                        teamOption.style.cursor = 'pointer';
+                    }
+                }
+            });
+        }
+
+        function updatePlayersGrid() {
+            const grid = document.getElementById('players-grid');
+            grid.innerHTML = '';
+            
+            gameState.teams.forEach((team, index) => {
+                const teamCard = document.createElement('div');
+                teamCard.className = 'team-card';
+                
+                const membersList = team.members.map(member => 
+                    `<li>${member.name} ${member.connected ? '🟢' : '🔴'}</li>`
+                ).join('');
+                
+                teamCard.innerHTML = `
+                    <h3>${team.emoji} ${team.name}</h3>
+                    <ul class="team-members">
+                        ${membersList || '<li style="opacity: 0.5;">Esperando jugadores...</li>'}
+                    </ul>
+                `;
+                
+                grid.appendChild(teamCard);
+            });
+        }
+
+        function updateLeaderboard() {
+            const standings = document.getElementById('team-standings');
+            standings.innerHTML = '';
+            
+            // Sort teams by score
+            const sortedTeams = [...gameState.teams]
+                .map((team, index) => ({ ...team, index }))
+                .sort((a, b) => b.score - a.score);
+            
+            sortedTeams.forEach((team, position) => {
+                const standingDiv = document.createElement('div');
+                standingDiv.className = 'team-standing';
+                
+                const positionEmoji = position === 0 ? '🥇' : position === 1 ? '🥈' : position === 2 ? '🥉' : `${position + 1}°`;
+                const memberNames = team.members.map(m => m.name).join(', ') || 'Sin jugadores';
+                
+                standingDiv.innerHTML = `
+                    <div class="standing-position">${positionEmoji}</div>
+                    <div class="standing-team">
+                        ${team.emoji} ${team.name}
+                        <div class="standing-players">${memberNames}</div>
+                    </div>
+                    <div class="standing-score">${team.score}</div>
+                `;
+                
+                standings.appendChild(standingDiv);
+            });
+        }
+
+        // =============================================
+        // GAME LOGIC
+        // =============================================
+        
+        function startRace() {
+            if (!gameState.isAdmin) return;
+            
+            const totalPlayers = gameState.teams.reduce((sum, team) => sum + team.members.length, 0);
+            if (totalPlayers < 2) {
+                showNotification('❌ Se necesitan al menos 2 jugadores para iniciar');
+                return;
+            }
+            
+            gameState.currentQuestion = 0;
+            gameState.currentAnswers.clear();
+            showScreen('playing');
+            showQuestion();
+            
+            // Broadcast to all players (in a real app, this would be via WebSocket/Socket.io)
+            broadcastGameState();
+        }
+
+        function showQuestion() {
+            if (gameState.currentQuestion >= challenges.length) {
+                endGame();
+                return;
+            }
+            
+            const challenge = challenges[gameState.currentQuestion];
+            
+            // Update question display
+            document.getElementById('challenge-type').textContent = challenge.type;
+            document.getElementById('question-text').textContent = challenge.question;
+            
+            // Create answer options
+            const optionsContainer = document.getElementById('answer-options');
+            optionsContainer.innerHTML = '';
+            
+            challenge.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn';
+                button.textContent = option;
+                button.onclick = () => selectAnswer(index);
+                button.dataset.option = index;
+                optionsContainer.appendChild(button);
+            });
+            
+            // Start timer
+            startQuestionTimer(challenge.time);
+            
+            // Clear waiting message
+            document.getElementById('waiting-next').classList.add('hidden');
+        }
+
+        function selectAnswer(optionIndex) {
+            if (!gameState.currentUser) return;
+            
+            const challenge = challenges[gameState.currentQuestion];
+            const userId = gameState.currentUser.id;
+            
+            // Record answer
+            gameState.currentAnswers.set(userId, {
+                option: optionIndex,
+                timestamp: Date.now(),
+                correct: optionIndex === challenge.correct
+            });
+            
+            // Update UI
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                if (parseInt(btn.dataset.option) === optionIndex) {
+                    btn.classList.add('selected');
+                }
+            });
+            
+            // Show waiting message
+            document.getElementById('waiting-next').classList.remove('hidden');
+            document.getElementById('waiting-next').innerHTML = `
+                🏁 Respuesta enviada: <strong>${challenge.options[optionIndex]}</strong><br>
+                Esperando otros jugadores...
+            `;
+        }
+
+        function startQuestionTimer(duration) {
+            gameState.timer = duration;
+            updateTimerDisplay();
+            
+            clearInterval(gameState.timerInterval);
+            gameState.timerInterval = setInterval(() => {
+                gameState.timer--;
+                updateTimerDisplay();
+                
+                if (gameState.timer <= 0) {
+                    clearInterval(gameState.timerInterval);
+                    processAnswers();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const timerElement = document.getElementById('timer-display');
+            timerElement.textContent = `⏱️ ${gameState.timer}`;
+            
+            // Change color based on time remaining
+            if (gameState.timer <= 5) {
+                timerElement.style.color = '#ff0080';
+                timerElement.style.animation = 'timerPulse 0.5s ease-in-out infinite';
+            } else if (gameState.timer <= 10) {
+                timerElement.style.color = '#ffaa00';
+            } else {
+                timerElement.style.color = '#ff0080';
+                timerElement.style.animation = 'timerPulse 1s ease-in-out infinite';
+            }
+        }
+
+        function processAnswers() {
+            const challenge = challenges[gameState.currentQuestion];
+            
+            // Show correct answers
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === challenge.correct) {
+                    btn.classList.add('correct');
+                } else {
+                    btn.classList.add('incorrect');
+                }
+            });
+            
+            // Calculate scores
+            gameState.currentAnswers.forEach((answer, userId) => {
+                const user = gameState.users.get(userId);
+                if (!user) return;
+                
+                if (answer.correct) {
+                    let points = challenge.points;
+                    
+                    // Speed bonus
+                    const responseTime = (answer.timestamp - Date.now() + (challenge.time * 1000)) / 1000;
+                    if (responseTime > challenge.time * 0.7) {
+                        points += 5;
+                    }
+                    
+                    // Add to team score
+                    gameState.teams[user.team].score += points;
+                    user.score += points;
+                }
+            });
+            
+            // Update leaderboard
+            updateLeaderboard();
+            
+            // Continue after delay
+            setTimeout(() => {
+                if (gameState.isAdmin) {
+                    nextQuestion();
+                }
+            }, 3000);
+        }
+
+        function nextQuestion() {
+            if (!gameState.isAdmin) return;
+            
+            gameState.currentQuestion++;
+            gameState.currentAnswers.clear();
+            
+            if (gameState.currentQuestion < challenges.length) {
+                showQuestion();
+            } else {
+                endGame();
+            }
+            
+            broadcastGameState();
+        }
+
+        function endGame() {
+            clearInterval(gameState.timerInterval);
+            
+            // Determine winner
+            const sortedTeams = [...gameState.teams].sort((a, b) => b.score - a.score);
+            const winner = sortedTeams[0];
+            
+            showNotification(`🏆 ¡${winner.emoji} ${winner.name} GANA LA CARRERA! 🏆`);
+            
+            // Show final results
+            updateLeaderboard();
+            
+            gameState.phase = 'finished';
+        }
+
+        function resetGame() {
+            if (!gameState.isAdmin) return;
+            
+            // Reset game state
+            gameState.currentQuestion = 0;
+            gameState.currentAnswers.clear();
+            gameState.teams.forEach(team => {
+                team.score = 0;
+                team.members.forEach(member => member.score = 0);
+            });
+            
+            clearInterval(gameState.timerInterval);
+            updateLeaderboard();
+            showScreen('waiting');
+            
+            broadcastGameState();
+        }
+
+        // =============================================
+        // UTILITY FUNCTIONS
+        // =============================================
+        
+        function showNotification(message) {
+            // Remove existing notification
+            const existing = document.querySelector('.notification');
+            if (existing) {
+                existing.remove();
+            }
+            
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function broadcastGameState() {
+            // In a real application, this would send the game state to all connected clients
+            // via WebSocket, Socket.io, or similar real-time communication
+            console.log('Broadcasting game state:', gameState);
+            
+            // For demo purposes, we'll simulate other players by updating the UI
+            // In production, each client would receive this update and sync their UI
+        }
+
+        // =============================================
+        // SIMULATED MULTIPLAYER (FOR DEMO)
+        // =============================================
+        
+        // Simulate other players joining (for demo purposes)
+        function simulateOtherPlayers() {
+            const demoPlayers = [
+                { name: 'MARÍA', team: 0 },
+                { name: 'CARLOS', team: 1 },
+                { name: 'ANA', team: 0 },
+                { name: 'LUIS', team: 2 },
+                { name: 'SOFIA', team: 1 }
+            ];
+            
+            demoPlayers.forEach((player, index) => {
+                setTimeout(() => {
+                    const userId = generateUserId();
+                    const user = {
+                        id: userId,
+                        name: player.name,
+                        team: player.team,
+                        score: 0,
+                        connected: true
+                    };
+                    
+                    gameState.users.set(userId, user);
+                    gameState.teams[player.team].members.push(user);
+                    
+                    updateTeamCounts();
+                    updatePlayersGrid();
+                    updateLeaderboard();
+                }, (index + 1) * 2000);
+            });
+        }
+
+        // Auto-detect admin (first player)
+        let adminCheckTimer = setTimeout(() => {
+            if (gameState.users.size === 0) {
+                gameState.isAdmin = true;
+                console.log('Auto-assigned admin privileges');
+            }
+        }, 1000);
+
+        // =============================================
+        // CONNECTION STATUS SIMULATION
+        // =============================================
+        
+        function updateConnectionStatus() {
+            const statusElement = document.getElementById('connection-status');
+            const isConnected = navigator.onLine; // Simple online check
+            
+            if (isConnected) {
+                statusElement.className = 'connection-status connected';
+                statusElement.textContent = '🟢 Conectado';
+            } else {
+                statusElement.className = 'connection-status disconnected';
+                statusElement.textContent = '🔴 Desconectado';
+            }
+        }
+
+        // Update connection status periodically
+        setInterval(updateConnectionStatus, 5000);
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+
+        // =============================================
+        // KEYBOARD SHORTCUTS
+        // =============================================
+        
+        document.addEventListener('keydown', function(event) {
+            // Only for admin
+            if (!gameState.isAdmin) return;
+            
+            switch(event.key) {
+                case 'Enter':
+                    if (gameState.phase === 'waiting') {
+                        startRace();
+                    } else if (gameState.phase === 'playing') {
+                        nextQuestion();
+                    }
+                    break;
+                case 'Escape':
+                    resetGame();
+                    break;
+                case 'r':
+                case 'R':
+                    if (event.ctrlKey) {
+                        event.preventDefault();
+                        resetGame();
+                    }
+                    break;
+            }
+            
+            // Number keys for answers (all players)
+            if (event.key >= '1' && event.key <= '4' && gameState.phase === 'playing') {
+                const answerIndex = parseInt(event.key) - 1;
+                const buttons = document.querySelectorAll('.answer-btn');
+                if (buttons[answerIndex] && !buttons[answerIndex].disabled) {
+                    selectAnswer(answerIndex);
+                }
+            }
+        });
+
+        // =============================================
+        // DEMO MODE ACTIVATION
+        // =============================================
+        
+        // Uncomment the line below to activate demo mode with simulated players
+        // setTimeout(simulateOtherPlayers, 3000);
+    </script>
+</body>
+</html>
