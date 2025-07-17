@@ -214,51 +214,62 @@
             50% { opacity: 0.7; }
         }
 
-        .players-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin: 30px 0;
-        }
-
-        @media (max-width: 768px) {
-            .players-grid {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 10px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .players-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .team-card {
+        .players-list {
             background: rgba(255,255,255,0.1);
             border: 2px solid #00ff41;
             border-radius: 15px;
-            padding: clamp(15px, 3vw, 20px);
-            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
         }
 
-        .team-card h3 {
-            color: #ffaa00;
-            margin-bottom: 15px;
-            font-size: clamp(0.9em, 2vw, 1.2em);
-        }
-
-        .team-members {
-            list-style: none;
-            padding: 0;
-        }
-
-        .team-members li {
-            background: rgba(255,255,255,0.1);
+        .player-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
             margin: 5px 0;
-            padding: 8px;
+            background: rgba(255,255,255,0.1);
             border-radius: 8px;
-            font-size: clamp(0.8em, 1.5vw, 0.9em);
+            font-size: clamp(0.9em, 1.5vw, 1em);
+        }
+
+        .player-emoji {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .start-game-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(0,255,65,0.1);
+            border: 2px solid #00ff41;
+            border-radius: 15px;
+        }
+
+        .start-btn {
+            background: linear-gradient(45deg, #00ff41, #00aa2f);
+            color: #000;
+            border: none;
+            padding: clamp(15px, 3vw, 20px) clamp(30px, 6vw, 50px);
+            border-radius: 25px;
+            font-size: clamp(1.1em, 2.5vw, 1.5em);
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            font-family: 'Orbitron', monospace;
+            box-shadow: 0 5px 30px rgba(0,255,65,0.4);
+            width: 100%;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 40px rgba(0,255,65,0.6);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* GAME SCREEN */
@@ -445,67 +456,6 @@
             margin-top: 5px;
         }
 
-        @media (max-width: 480px) {
-            .team-standing {
-                flex-direction: column;
-                text-align: center;
-                gap: 5px;
-            }
-            
-            .standing-position {
-                margin-right: 0;
-                margin-bottom: 5px;
-            }
-        }
-
-        /* ADMIN CONTROLS */
-        .admin-controls {
-            background: rgba(255,0,128,0.2);
-            border: 2px solid #ff0080;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        .admin-controls h3 {
-            font-size: clamp(1em, 2vw, 1.2em);
-            margin-bottom: 15px;
-        }
-
-        .admin-btn {
-            background: linear-gradient(45deg, #ff0080, #8000ff);
-            color: #fff;
-            border: none;
-            padding: clamp(10px, 2vw, 15px) clamp(15px, 3vw, 30px);
-            border-radius: 25px;
-            font-size: clamp(0.9em, 1.8vw, 1.1em);
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            font-family: 'Orbitron', monospace;
-            margin: 5px;
-            box-shadow: 0 5px 20px rgba(255,0,128,0.4);
-        }
-
-        @media (max-width: 480px) {
-            .admin-btn {
-                display: block;
-                width: 100%;
-                margin: 5px 0;
-            }
-        }
-
-        .admin-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(255,0,128,0.6);
-        }
-
-        .admin-btn.danger {
-            background: linear-gradient(45deg, #ff4444, #cc0000);
-        }
-
         /* UTILITY CLASSES */
         .hidden {
             display: none !important;
@@ -652,28 +602,28 @@
             </div>
             
             <button id="join-game-btn" class="join-btn" disabled>🚀 UNIRSE AL JUEGO</button>
-            
-            <div id="session-code-display" class="hidden" style="margin-top: 20px; padding: 15px; background: rgba(0,255,65,0.1); border: 2px solid #00ff41; border-radius: 10px;">
-                <strong>Código de sesión: <span id="session-code"></span></strong><br>
-                <small>Comparte este código con otros jugadores</small>
-            </div>
         </div>
 
         <!-- WAITING LOBBY -->
         <div id="waiting-lobby" class="waiting-lobby hidden">
             <h2 class="lobby-title">🏁 SALA DE ESPERA</h2>
-            <p class="waiting-message">Esperando que el instructor inicie la carrera...</p>
-            <p id="player-count" style="color: #ffaa00; font-size: 1.1em; margin-bottom: 20px;">
-                Jugadores conectados: <span id="connected-count">0</span>
-            </p>
+            <p class="waiting-message">Esperando más jugadores...</p>
             
-            <div class="players-grid" id="players-grid"></div>
+            <div class="players-list">
+                <h3 style="color: #00ff41; margin-bottom: 15px;">👥 JUGADORES CONECTADOS (<span id="player-count">0</span>/17)</h3>
+                <div id="players-container"></div>
+            </div>
 
-            <!-- Solo visible para el instructor -->
-            <div id="admin-controls" class="admin-controls hidden">
-                <h3>🎯 CONTROLES DE INSTRUCTOR</h3>
-                <button id="start-race-btn" class="admin-btn">🚀 INICIAR CARRERA</button>
-                <button id="reset-game-btn" class="admin-btn danger">🔄 RESETEAR JUEGO</button>
+            <div class="start-game-section">
+                <p style="margin-bottom: 15px; color: #ffaa00;">
+                    ¡Cualquier jugador puede iniciar el juego!
+                </p>
+                <button id="start-game-btn" class="start-btn" disabled>
+                    🚀 INICIAR CARRERA AHORA
+                </button>
+                <p style="margin-top: 10px; font-size: 0.9em; color: rgba(255,255,255,0.7);">
+                    Mínimo: 1 jugador | Máximo: 17 jugadores
+                </p>
             </div>
         </div>
 
@@ -712,22 +662,15 @@
 
     <script>
         // =============================================
-        // CONFIGURACIÓN DEL JUEGO
+        // JEU SIMPLIFIÉ STYLE KAHOOT
         // =============================================
-        
-        // Detectar entorno de producción
-        const IS_PRODUCTION = window.location.hostname !== 'localhost' && 
-                             window.location.hostname !== '127.0.0.1' && 
-                             !window.location.hostname.includes('localhost');
         
         let gameState = {
             phase: 'login',
             currentUser: null,
-            sessionId: null,
-            isAdmin: false,
             selectedTeam: null,
             currentQuestion: 0,
-            connectedPlayers: new Set(),
+            players: [],
             teams: [
                 { name: 'RIÑÓN ROJO', emoji: '🏎️', members: [], score: 0 },
                 { name: 'AZUL NEFRÓN', emoji: '🏁', members: [], score: 0 },
@@ -780,83 +723,103 @@
                     options: ["NCC", "NKCC2", "ENaC", "AQP2"],
                     correct: 1,
                     points: 20
-                },
-                {
-                    type: "🚀 BONUS RACE",
-                    difficulty: 5,
-                    time: 30,
-                    question: "¿Cuál es el mecanismo de retroalimentación tubuloglomerular que regula la TFG?",
-                    options: ["Mácula densa → renina", "Mácula densa → adenosina → vasoconstricción", "Podocitos → óxido nítrico", "Mesangio → endotelina"],
-                    correct: 1,
-                    points: 40
-                },
-                {
-                    type: "⚡ DESAFÍO RELÁMPAGO",
-                    difficulty: 2,
-                    time: 20,
-                    question: "¿Qué célula del aparato yuxtaglomerular secreta renina?",
-                    options: ["Células de la mácula densa", "Células yuxtaglomerulares", "Células mesangiales", "Podocitos"],
-                    correct: 1,
-                    points: 15
-                },
-                {
-                    type: "🧩 IDENTIFICACIÓN",
-                    difficulty: 3,
-                    time: 25,
-                    question: "¿Qué estructura permite la concentración de orina mediante el mecanismo de contracorriente?",
-                    options: ["Glomérulo", "Túbulo proximal", "Asa de Henle", "Túbulo distal"],
-                    correct: 2,
-                    points: 20
-                },
-                {
-                    type: "🚀 BONUS RACE",
-                    difficulty: 5,
-                    time: 35,
-                    question: "En la enfermedad renal crónica, ¿a partir de qué estadio se debe considerar diálisis?",
-                    options: ["Estadio 3 (TFG 30-59)", "Estadio 4 (TFG 15-29)", "Estadio 5 (TFG <15)", "Cualquier estadio con síntomas"],
-                    correct: 2,
-                    points: 45
-                },
-                {
-                    type: "⚡ DESAFÍO RELÁMPAGO",
-                    difficulty: 2,
-                    time: 20,
-                    question: "¿Qué hormona estimula la síntesis de eritropoyetina?",
-                    options: ["Hipoxia", "Hipercapnia", "Hiponatremia", "Hipercalemia"],
-                    correct: 0,
-                    points: 15
                 }
             ]
         };
 
         // =============================================
-        // INICIALIZACIÓN
+        // COMMUNICATION AVEC L'API
+        // =============================================
+        
+        const IS_PRODUCTION = window.location.hostname !== 'localhost';
+        const API_BASE = IS_PRODUCTION ? '/.netlify/functions' : 'http://localhost:8888/.netlify/functions';
+
+        async function apiCall(action, data = {}) {
+            try {
+                const response = await fetch(`${API_BASE}/join-game`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action, ...data })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                // Mode offline : continuer sans API
+                return { success: false, error: error.message };
+            }
+        }
+
+        async function getGameState() {
+            try {
+                const response = await fetch(`${API_BASE}/join-game`);
+                if (response.ok) {
+                    return await response.json();
+                }
+            } catch (error) {
+                console.log('API no disponible - modo offline');
+            }
+            return null;
+        }
+
+        // =============================================
+        // INITIALISATION
         // =============================================
         
         document.addEventListener('DOMContentLoaded', function() {
             initializeGame();
             setupEventListeners();
-            initializeLocalSimulation();
+            startPolling();
         });
 
         function initializeGame() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const sessionCode = urlParams.get('code');
-            const isAdmin = urlParams.get('admin') === 'true';
-            
-            console.log('🔍 URL params:', { sessionCode, isAdmin });
-            
-            if (isAdmin) {
-                gameState.isAdmin = true;
-                console.log('👨‍💼 Modo admin activado');
-                createNewSession();
-            } else if (sessionCode) {
-                console.log('🔗 Uniéndose a sesión:', sessionCode);
-                joinSessionByCode(sessionCode);
-            }
-            
+            updateConnectionStatus(true);
             updateLeaderboard();
             showScreen('login');
+            
+            // Cargar estado inicial del servidor
+            loadGameState();
+        }
+
+        async function loadGameState() {
+            const serverState = await getGameState();
+            if (serverState && serverState.success) {
+                // Actualizar con datos del servidor
+                gameState.players = serverState.players || [];
+                updateUIFromServerState();
+            }
+        }
+
+        function updateUIFromServerState() {
+            // Redistribuer les joueurs dans les équipes
+            gameState.teams.forEach(team => team.members = []);
+            
+            gameState.players.forEach(player => {
+                if (player.team < gameState.teams.length) {
+                    gameState.teams[player.team].members.push(player);
+                }
+            });
+            
+            updateTeamCounts();
+            updatePlayersList();
+            updateStartButton();
+        }
+
+        function startPolling() {
+            // Polling pour synchronisation en temps réel
+            setInterval(async () => {
+                if (gameState.phase === 'waiting') {
+                    const serverState = await getGameState();
+                    if (serverState && serverState.success) {
+                        gameState.players = serverState.players || [];
+                        updateUIFromServerState();
+                    }
+                }
+            }, 3000);
         }
 
         function setupEventListeners() {
@@ -880,187 +843,10 @@
 
             // Botones
             document.getElementById('join-game-btn').addEventListener('click', joinGame);
-            document.getElementById('start-race-btn').addEventListener('click', startRace);
-            document.getElementById('reset-game-btn').addEventListener('click', resetGame);
+            document.getElementById('start-game-btn').addEventListener('click', startGame);
 
             // Atajos de teclado
             document.addEventListener('keydown', handleKeyboardShortcuts);
-        }
-
-        // =============================================
-        // COMUNICACIÓN CON BACKEND
-        // =============================================
-        
-        const API_BASE = IS_PRODUCTION ? '/.netlify/functions' : 'http://localhost:8888/.netlify/functions';
-
-        async function apiCall(endpoint, data = null) {
-            try {
-                console.log(`🔗 API Call: ${endpoint}`, data);
-                
-                const options = {
-                    method: data ? 'POST' : 'GET',
-                    headers: { 'Content-Type': 'application/json' }
-                };
-                
-                if (data) {
-                    options.body = JSON.stringify(data);
-                }
-                
-                const url = `${API_BASE}/${endpoint}`;
-                console.log(`📡 Calling: ${url}`);
-                
-                const response = await fetch(url, options);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const result = await response.json();
-                console.log(`✅ API Response:`, result);
-                
-                return result;
-            } catch (error) {
-                console.error('❌ API Error:', error);
-                throw error;
-            }
-        }
-
-        function initializeLocalSimulation() {
-            console.log('🚀 Modo producción: API real activada');
-            updateConnectionStatus(true);
-            
-            // Polling para mantener sincronización
-            startPolling();
-        }
-
-        function startPolling() {
-            setInterval(async () => {
-                if (gameState.sessionId && gameState.phase === 'waiting') {
-                    try {
-                        const sessionData = await apiCall(`get-session?sessionCode=${gameState.sessionId}`);
-                        if (sessionData.success) {
-                            updateSessionFromAPI(sessionData);
-                        }
-                    } catch (error) {
-                        console.error('Polling error:', error);
-                    }
-                }
-            }, 3000);
-        }
-
-        function updateSessionFromAPI(data) {
-            if (!data.players) return;
-
-            // Limpiar equipos actuales
-            gameState.teams.forEach(team => team.members = []);
-            gameState.connectedPlayers.clear();
-
-            // Actualizar con datos del servidor
-            data.players.forEach(player => {
-                const team = gameState.teams[player.team_index];
-                if (team) {
-                    team.members.push({
-                        id: player.id,
-                        name: player.username,
-                        score: player.score || 0,
-                        connected: true
-                    });
-                    gameState.connectedPlayers.add(player.id);
-                }
-            });
-
-            // Actualizar puntuaciones de equipos
-            if (data.teamScores) {
-                data.teamScores.forEach(teamScore => {
-                    gameState.teams[teamScore.team_index].score = teamScore.total_score || 0;
-                });
-            }
-
-            // Actualizar UI
-            updateTeamCounts();
-            updatePlayersGrid();
-            updateLeaderboard();
-            updatePlayerCount();
-        }
-
-        // =============================================
-        // GESTIÓN DE SESIONES
-        // =============================================
-        
-        async function createNewSession() {
-            try {
-                console.log('🎯 Creando nueva sesión...');
-                
-                // Essayer GET d'abord (plus simple pour Netlify)
-                const response = await fetch(`${API_BASE}/create-session`, {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const result = await response.json();
-                console.log('✅ Response:', result);
-                
-                if (result.success) {
-                    gameState.sessionId = result.session.id;
-                    const sessionCode = result.session.instructor_code;
-                    
-                    console.log('✅ Sesión creada:', { id: gameState.sessionId, code: sessionCode });
-                    
-                    // Mostrar código de sesión
-                    document.getElementById('session-code').textContent = sessionCode;
-                    document.getElementById('session-code-display').classList.remove('hidden');
-                    
-                    // Actualizar URL
-                    const shareUrl = `${window.location.origin}?code=${sessionCode}`;
-                    console.log('🔗 URL para compartir:', shareUrl);
-                    
-                    showNotification(`✅ Sesión creada: ${sessionCode}`);
-                } else {
-                    throw new Error(result.error || 'Error desconocido');
-                }
-            } catch (error) {
-                console.error('❌ Error creando sesión:', error);
-                
-                // Fallback: crear sesión local temporal
-                const sessionCode = generateSessionCode();
-                gameState.sessionId = sessionCode;
-                
-                document.getElementById('session-code').textContent = sessionCode;
-                document.getElementById('session-code-display').classList.remove('hidden');
-                
-                showNotification(`⚠️ Modo offline: ${sessionCode}`);
-                showNotification('🔧 Functions no disponibles - Modo local activado');
-            }
-        }
-
-        function generateSessionCode() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let result = '';
-            for (let i = 0; i < 6; i++) {
-                result += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            return result;
-        }
-
-        async function joinSessionByCode(sessionCode) {
-            try {
-                const response = await apiCall(`get-session?sessionCode=${sessionCode}`);
-                
-                if (response.success) {
-                    gameState.sessionId = response.session.id;
-                    updateSessionFromAPI(response);
-                    showNotification(`🔍 Conectado a sesión: ${sessionCode}`);
-                } else {
-                    showNotification('❌ Sesión no encontrada');
-                }
-            } catch (error) {
-                showNotification('❌ Error conectando a la sesión');
-                console.error('Error:', error);
-            }
         }
 
         // =============================================
@@ -1099,47 +885,100 @@
                 return;
             }
 
-            if (!gameState.sessionId) {
-                showNotification('❌ No hay sesión activa');
+            // Essayer d'abord l'API
+            const response = await apiCall('join', {
+                playerName: username,
+                teamIndex: teamIndex
+            });
+
+            if (response.success) {
+                // Serveur OK
+                const user = response.player;
+                gameState.currentUser = user;
+                
+                // Actualiser état local
+                await loadGameState();
+                
+                updateUserInfo();
+                showScreen('waiting');
+                showNotification(`🎉 ¡Bienvenido ${username}!`);
+            } else {
+                // Fallback mode offline
+                if (response.error) {
+                    showNotification(`❌ ${response.error}`);
+                    return;
+                }
+                
+                // Mode offline complet
+                joinGameOffline(username, teamIndex);
+            }
+        }
+
+        function joinGameOffline(username, teamIndex) {
+            // Vérifications locales
+            if (gameState.players.length >= 17) {
+                showNotification('❌ Sala completa (máximo 17 jugadores)');
                 return;
             }
 
-            try {
-                const response = await apiCall('join-session', {
-                    sessionId: gameState.sessionId,
-                    username: username,
-                    teamIndex: teamIndex
-                });
-
-                if (response.success) {
-                    // Crear usuario local
-                    const user = {
-                        id: response.player.id,
-                        name: username,
-                        team: teamIndex,
-                        score: 0,
-                        connected: true
-                    };
-
-                    gameState.currentUser = user;
-                    gameState.teams[teamIndex].members.push(user);
-                    gameState.connectedPlayers.add(user.id);
-
-                    // Actualizar UI
-                    updateUserInfo();
-                    updateTeamCounts();
-                    updatePlayersGrid();
-                    updatePlayerCount();
-                    showScreen('waiting');
-
-                    showNotification(`🎉 ¡Bienvenido ${username}!`);
-                } else {
-                    showNotification(`❌ ${response.error}`);
-                }
-            } catch (error) {
-                showNotification('❌ Error uniéndose al juego');
-                console.error('Error:', error);
+            const existingPlayer = gameState.players.find(p => p.name === username);
+            if (existingPlayer) {
+                showNotification('❌ Ese nombre ya está en uso');
+                return;
             }
+
+            if (gameState.teams[teamIndex].members.length >= 4) {
+                showNotification('❌ Equipo completo');
+                return;
+            }
+
+            // Crear usuario local
+            const user = {
+                id: generateUserId(),
+                name: username,
+                team: teamIndex,
+                score: 0,
+                connected: true
+            };
+
+            gameState.currentUser = user;
+            gameState.players.push(user);
+            gameState.teams[teamIndex].members.push(user);
+
+            updateUserInfo();
+            updateTeamCounts();
+            updatePlayersList();
+            updateStartButton();
+            showScreen('waiting');
+
+            showNotification(`🎉 ¡Bienvenido ${username}! (Modo offline)`);
+
+            // Añadir jugadores demo en modo offline
+            setTimeout(() => {
+                addDemoPlayer('MARÍA', 0);
+                setTimeout(() => addDemoPlayer('CARLOS', 1), 1000);
+            }, 2000);
+        }
+
+        function addDemoPlayer(name, teamIndex) {
+            if (gameState.players.length >= 17) return;
+            if (gameState.teams[teamIndex].members.length >= 4) return;
+
+            const user = {
+                id: generateUserId(),
+                name: name,
+                team: teamIndex,
+                score: 0,
+                connected: true
+            };
+
+            gameState.players.push(user);
+            gameState.teams[teamIndex].members.push(user);
+
+            updateTeamCounts();
+            updatePlayersList();
+            updateStartButton();
+            showNotification(`👋 ${name} se unió al juego`);
         }
 
         function generateUserId() {
@@ -1169,27 +1008,39 @@
             });
         }
 
-        function updatePlayersGrid() {
-            const grid = document.getElementById('players-grid');
-            grid.innerHTML = '';
+        function updatePlayersList() {
+            const container = document.getElementById('players-container');
+            const countElement = document.getElementById('player-count');
             
-            gameState.teams.forEach((team, index) => {
-                const teamCard = document.createElement('div');
-                teamCard.className = 'team-card';
+            countElement.textContent = gameState.players.length;
+            container.innerHTML = '';
+
+            gameState.players.forEach(player => {
+                const team = gameState.teams[player.team];
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'player-item';
                 
-                const membersList = team.members.map(member => 
-                    `<li>${member.name} ${member.connected ? '🟢' : '🔴'} (${member.score} pts)</li>`
-                ).join('');
-                
-                teamCard.innerHTML = `
-                    <h3>${team.emoji} ${team.name}</h3>
-                    <ul class="team-members">
-                        ${membersList || '<li style="opacity: 0.5;">Esperando jugadores...</li>'}
-                    </ul>
+                playerDiv.innerHTML = `
+                    <span class="player-emoji">${team.emoji}</span>
+                    <span>${player.name}</span>
+                    <span style="margin-left: auto; color: #ffaa00;">${player.score} pts</span>
                 `;
                 
-                grid.appendChild(teamCard);
+                container.appendChild(playerDiv);
             });
+        }
+
+        function updateStartButton() {
+            const btn = document.getElementById('start-game-btn');
+            const canStart = gameState.players.length >= 1;
+            
+            btn.disabled = !canStart;
+            
+            if (canStart) {
+                btn.textContent = `🚀 INICIAR CARRERA (${gameState.players.length} jugadores)`;
+            } else {
+                btn.textContent = '⏳ Esperando jugadores...';
+            }
         }
 
         function updateLeaderboard() {
@@ -1231,11 +1082,6 @@
             document.getElementById('user-score-display').textContent = user.score || 0;
         }
 
-        function updatePlayerCount() {
-            const count = gameState.connectedPlayers.size;
-            document.getElementById('connected-count').textContent = count;
-        }
-
         function updateConnectionStatus(connected) {
             const statusElement = document.getElementById('connection-status');
             
@@ -1252,30 +1098,23 @@
         // LÓGICA DEL JUEGO
         // =============================================
         
-        async function startRace() {
-            if (!gameState.isAdmin) return;
-            
-            const totalPlayers = gameState.connectedPlayers.size;
-            if (totalPlayers < 2) {
-                showNotification('❌ Se necesitan al menos 2 jugadores para iniciar');
+        async function startGame() {
+            if (gameState.players.length < 1) {
+                showNotification('❌ Se necesita al menos 1 jugador');
                 return;
             }
             
-            try {
-                const response = await apiCall('game-action', {
-                    action: 'start_game',
-                    sessionId: gameState.sessionId
-                });
-
-                if (response.success) {
-                    gameState.currentQuestion = 0;
-                    showScreen('playing');
-                    showQuestion(response.question, response.questionIndex);
-                }
-            } catch (error) {
-                showNotification('❌ Error iniciando el juego');
-                console.error('Error:', error);
+            // Essayer de démarrer via l'API
+            const response = await apiCall('start');
+            
+            if (response.success) {
+                showNotification('🏁 ¡La carrera ha comenzado!');
             }
+            
+            // Démarrer localement (API ou pas)
+            gameState.currentQuestion = 0;
+            showScreen('playing');
+            showQuestion(gameState.challenges[0], 0);
         }
 
         function showQuestion(question, questionIndex) {
@@ -1336,22 +1175,21 @@
             document.getElementById('waiting-next').classList.remove('hidden');
             document.getElementById('waiting-next').innerHTML = `
                 ${message}<br>
-                <small>Esperando otros jugadores...</small>
+                <small>Esperando siguiente pregunta...</small>
             `;
 
             // Actualizar UI
             updateUserInfo();
+            updatePlayersList();
             updateLeaderboard();
 
-            // Auto-avanzar si es admin
-            if (gameState.isAdmin) {
+            // Auto-avanzar
+            setTimeout(() => {
+                showCorrectAnswer(challenge.correct);
                 setTimeout(() => {
-                    showCorrectAnswer(challenge.correct);
-                    setTimeout(() => {
-                        nextQuestion();
-                    }, 3000);
-                }, 2000);
-            }
+                    nextQuestion();
+                }, 3000);
+            }, 2000);
         }
 
         function showCorrectAnswer(correctIndex) {
@@ -1368,8 +1206,6 @@
         }
 
         function nextQuestion() {
-            if (!gameState.isAdmin) return;
-            
             gameState.currentQuestion++;
             
             if (gameState.currentQuestion < gameState.challenges.length) {
@@ -1395,11 +1231,9 @@
                     const challenge = gameState.challenges[gameState.currentQuestion];
                     showCorrectAnswer(challenge.correct);
                     
-                    if (gameState.isAdmin) {
-                        setTimeout(() => {
-                            nextQuestion();
-                        }, 3000);
-                    }
+                    setTimeout(() => {
+                        nextQuestion();
+                    }, 3000);
                 }
             }, 1000);
         }
@@ -1426,24 +1260,12 @@
             
             showNotification(`🏆 ¡${winner.emoji} ${winner.name} GANA LA CARRERA! 🏆`);
             updateLeaderboard();
-        }
-
-        function resetGame() {
-            if (!gameState.isAdmin) return;
             
-            gameState.currentQuestion = 0;
-            gameState.teams.forEach(team => {
-                team.score = 0;
-                team.members.forEach(member => member.score = 0);
-            });
-            
-            if (gameState.currentUser) {
-                gameState.currentUser.score = 0;
-            }
-            
-            updateLeaderboard();
-            updateUserInfo();
-            showScreen('waiting');
+            // Mostrar clasificación final
+            setTimeout(() => {
+                showScreen('waiting');
+                showNotification('🎮 ¡Juego terminado! Pueden unirse más jugadores para otra partida.');
+            }, 5000);
         }
 
         // =============================================
@@ -1462,9 +1284,6 @@
                 case 'waiting':
                     document.getElementById('waiting-lobby').classList.remove('hidden');
                     document.getElementById('user-info').classList.remove('hidden');
-                    if (gameState.isAdmin) {
-                        document.getElementById('admin-controls').classList.remove('hidden');
-                    }
                     break;
                 case 'playing':
                     document.getElementById('game-screen').classList.remove('hidden');
@@ -1496,25 +1315,20 @@
         }
 
         function handleKeyboardShortcuts(event) {
-            if (gameState.isAdmin) {
-                switch(event.key) {
-                    case 'Enter':
-                        if (gameState.phase === 'waiting') {
-                            startRace();
-                        }
-                        break;
-                    case 'Escape':
-                        resetGame();
-                        break;
-                }
-            }
-            
             // Teclas numéricas para respuestas
             if (event.key >= '1' && event.key <= '4' && gameState.phase === 'playing') {
                 const answerIndex = parseInt(event.key) - 1;
                 const buttons = document.querySelectorAll('.answer-btn');
                 if (buttons[answerIndex] && !buttons[answerIndex].disabled) {
                     selectAnswer(answerIndex);
+                }
+            }
+            
+            // Espacio para iniciar juego en lobby
+            if (event.key === ' ' && gameState.phase === 'waiting') {
+                const btn = document.getElementById('start-game-btn');
+                if (!btn.disabled) {
+                    startGame();
                 }
             }
         }
@@ -1558,9 +1372,11 @@
                 simulateAnswer: (option) => {
                     selectAnswer(option || 0);
                 },
-                skipToGame: () => {
-                    showScreen('playing');
-                    showQuestion(gameState.challenges[0], 0);
+                addPlayers: () => {
+                    const names = ['ANA', 'LUIS', 'SOFIA', 'PEDRO', 'CLARA'];
+                    names.forEach((name, i) => {
+                        setTimeout(() => addDemoPlayer(name, i % 5), i * 500);
+                    });
                 }
             };
             
