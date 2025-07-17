@@ -1,30 +1,28 @@
 {
-  "name": "kidney-racing-championship",
+  "name": "kidney-racing-championship-netlify",
   "version": "1.0.0",
-  "description": "Multiplayer educational game about renal system",
-  "main": "api/socket.js",
+  "description": "Multiplayer educational game about renal system - Netlify deployment",
+  "main": "index.html",
   "scripts": {
-    "start": "node api/socket.js",
-    "dev": "nodemon api/socket.js",
-    "build": "echo 'No build process needed'"
+    "build": "echo 'No build process needed'",
+    "dev": "netlify dev",
+    "deploy": "netlify deploy --prod"
   },
   "keywords": [
     "game",
     "education",
     "multiplayer",
-    "socket.io",
     "medical",
-    "kidney"
+    "kidney",
+    "netlify"
   ],
   "author": "Kidney Racing Championship",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "socket.io": "^4.7.4",
     "@supabase/supabase-js": "^2.39.1"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "netlify-cli": "^17.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
