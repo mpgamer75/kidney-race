@@ -1,74 +1,21 @@
 // =============================================
 // netlify/functions/join-game.js
-// Fonction avec synchronisation temps réel
+// Version simplifiée et corrigée
 // =============================================
 
-// Base de données simulée avec état de jeu partagé
+// Base de données simulée
 let gameData = {
     players: [],
-    gameStatus: 'waiting', // waiting, playing, finished
+    gameStatus: 'waiting',
     currentQuestion: 0,
-    questionStartTime: null,
-    playersAnswered: new Set(), // IDs des joueurs qui ont répondu
-    currentQuestionData: null,
     teams: [
         { name: 'RIÑÓN ROJO', emoji: '🏎️', members: [], score: 0 },
         { name: 'AZUL NEFRÓN', emoji: '🏁', members: [], score: 0 },
         { name: 'AMARILLO FILTRO', emoji: '🚗', members: [], score: 0 },
         { name: 'VERDE HOMEOSTASIS', emoji: '🏎️', members: [], score: 0 },
         { name: 'PÚRPURA UREA', emoji: '🏁', members: [], score: 0 }
-    ],
-    challenges: [
-        {
-            type: "⚡ DESAFÍO RELÁMPAGO",
-            difficulty: 2,
-            time: 20,
-            question: "¿Qué estructura del nefrón es responsable de la filtración selectiva de proteínas plasmáticas?",
-            options: ["Cápsula de Bowman", "Barrera de filtración glomerular", "Túbulo contorneado proximal", "Asa de Henle"],
-            correct: 1,
-            points: 15
-        },
-        {
-            type: "🧩 IDENTIFICACIÓN",
-            difficulty: 2,
-            time: 20,
-            question: "¿Cuál es la hormona que regula la reabsorción de sodio en el túbulo distal?",
-            options: ["ADH", "Aldosterona", "Eritropoyetina", "Renina"],
-            correct: 1,
-            points: 15
-        },
-        {
-            type: "🚀 BONUS RACE",
-            difficulty: 4,
-            time: 25,
-            question: "En la acidosis metabólica, ¿qué células del túbulo distal secretan H+ y reabsorben HCO3-?",
-            options: ["Células principales", "Células intercaladas tipo A", "Células intercaladas tipo B", "Podocitos"],
-            correct: 1,
-            points: 30
-        },
-        {
-            type: "⚡ DESAFÍO RELÁMPAGO",
-            difficulty: 3,
-            time: 20,
-            question: "¿Qué valor de clearance de creatinina indica insuficiencia renal crónica estadio 3?",
-            options: ["90-120 mL/min", "60-89 mL/min", "30-59 mL/min", "15-29 mL/min"],
-            correct: 2,
-            points: 20
-        },
-        {
-            type: "🧩 IDENTIFICACIÓN",
-            difficulty: 3,
-            time: 25,
-            question: "¿Qué transportador en el túbulo proximal es inhibido por los diuréticos de asa?",
-            options: ["NCC", "NKCC2", "ENaC", "AQP2"],
-            correct: 1,
-            points: 20
-        }
     ]
 };
-
-// Timer global pour les questions
-let questionTimer = null;
 
 exports.handler = async (event, context) => {
     const headers = {
@@ -82,10 +29,10 @@ exports.handler = async (event, context) => {
     }
 
     try {
-        const { httpMethod, body } = event;
-
-        if (httpMethod === 'GET') {
-            // Obtenir état complet du jeu
+        if (event.httpMethod === 'GET') {
+            // Mettre à jour les équipes depuis les joueurs
+            updateTeamsFromPlayers();
+            
             return {
                 statusCode: 200,
                 headers,
@@ -94,18 +41,13 @@ exports.handler = async (event, context) => {
                     players: gameData.players,
                     teams: gameData.teams,
                     gameStatus: gameData.gameStatus,
-                    currentQuestion: gameData.currentQuestion,
-                    currentQuestionData: gameData.currentQuestionData,
-                    questionStartTime: gameData.questionStartTime,
-                    playersAnswered: Array.from(gameData.playersAnswered),
-                    totalPlayers: gameData.players.length,
-                    timestamp: Date.now()
+                    totalPlayers: gameData.players.length
                 })
             };
         }
 
-        if (httpMethod === 'POST') {
-            const { action, playerName, teamIndex, answer, playerId, questionIndex } = JSON.parse(body);
+        if (event.httpMethod === 'POST') {
+            const { action, playerName, teamIndex, playerId } = JSON.parse(body || '{}');
 
             switch (action) {
                 case 'join':
@@ -114,10 +56,6 @@ exports.handler = async (event, context) => {
                     return handleLeaveGame(playerId, headers);
                 case 'start':
                     return handleStartGame(headers);
-                case 'answer':
-                    return handleSubmitAnswer(playerId, answer, questionIndex, headers);
-                case 'next-question':
-                    return handleNextQuestion(headers);
                 case 'reset':
                     return handleResetGame(headers);
                 default:
@@ -168,16 +106,33 @@ function handleJoinGame(playerName, teamIndex, headers) {
             return {
                 statusCode: 400,
                 headers,
-                body: JSON.stringify({ error: 'Sala completa (máximo 17 jugadores)' })
+                body: JSON.stringify({ 
+                    success: false, 
+                    error: 'Sala completa (máximo 17 jugadores)' 
+                })
             };
         }
 
-        const existingPlayer = gameData.players.find(p => p.name === playerName);
+        if (!playerName || playerName.trim().length < 2) {
+            return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({ 
+                    success: false, 
+                    error: 'Nombre debe tener al menos 2 caracteres' 
+                })
+            };
+        }
+
+        const existingPlayer = gameData.players.find(p => p.name === playerName.trim());
         if (existingPlayer) {
             return {
                 statusCode: 400,
                 headers,
-                body: JSON.stringify({ error: 'Ese nombre ya está en uso' })
+                body: JSON.stringify({ 
+                    success: false, 
+                    error: 'Ese nombre ya está en uso' 
+                })
             };
         }
 
@@ -186,19 +141,21 @@ function handleJoinGame(playerName, teamIndex, headers) {
             return {
                 statusCode: 400,
                 headers,
-                body: JSON.stringify({ error: 'Equipo completo (máximo 4 por equipo)' })
+                body: JSON.stringify({ 
+                    success: false, 
+                    error: 'Equipo completo (máximo 4 por equipo)' 
+                })
             };
         }
 
-        // Créer joueur
+        // Crear jugador
         const player = {
             id: `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            name: playerName,
+            name: playerName.trim(),
             team: teamIndex,
             score: 0,
             connected: true,
-            joinedAt: new Date().toISOString(),
-            lastAnswer: null
+            joinedAt: new Date().toISOString()
         };
 
         gameData.players.push(player);
@@ -219,7 +176,10 @@ function handleJoinGame(playerName, teamIndex, headers) {
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({ error: error.message })
+            body: JSON.stringify({ 
+                success: false, 
+                error: error.message 
+            })
         };
     }
 }
@@ -232,20 +192,22 @@ function handleLeaveGame(playerId, headers) {
             return {
                 statusCode: 400,
                 headers,
-                body: JSON.stringify({ error: 'Jugador no encontrado' })
+                body: JSON.stringify({ 
+                    success: false, 
+                    error: 'Jugador no encontrado' 
+                })
             };
         }
 
         // Retirer le joueur
         gameData.players.splice(playerIndex, 1);
-        gameData.playersAnswered.delete(playerId);
 
         // Si plus aucun joueur, reset complet
         if (gameData.players.length === 0) {
-            handleResetGame(headers);
-        } else {
-            updateTeamsFromPlayers();
+            gameData.gameStatus = 'waiting';
         }
+
+        updateTeamsFromPlayers();
 
         return {
             statusCode: 200,
@@ -262,7 +224,10 @@ function handleLeaveGame(playerId, headers) {
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({ error: error.message })
+            body: JSON.stringify({ 
+                success: false, 
+                error: error.message 
+            })
         };
     }
 }
@@ -273,22 +238,14 @@ function handleStartGame(headers) {
             return {
                 statusCode: 400,
                 headers,
-                body: JSON.stringify({ error: 'Se necesita al menos 1 jugador' })
+                body: JSON.stringify({ 
+                    success: false, 
+                    error: 'Se necesita al menos 1 jugador' 
+                })
             };
         }
 
-        // Démarrer le jeu
         gameData.gameStatus = 'playing';
-        gameData.currentQuestion = 0;
-        gameData.playersAnswered.clear();
-        
-        // Préparer première question
-        const firstQuestion = gameData.challenges[0];
-        gameData.currentQuestionData = firstQuestion;
-        gameData.questionStartTime = Date.now();
-
-        // Démarrer timer automatique pour cette question
-        startQuestionTimer(firstQuestion.time);
 
         return {
             statusCode: 200,
@@ -297,8 +254,6 @@ function handleStartGame(headers) {
                 success: true,
                 message: 'Juego iniciado',
                 gameStatus: gameData.gameStatus,
-                currentQuestionData: gameData.currentQuestionData,
-                questionStartTime: gameData.questionStartTime,
                 totalPlayers: gameData.players.length
             })
         };
@@ -307,200 +262,28 @@ function handleStartGame(headers) {
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({ error: error.message })
-        };
-    }
-}
-
-function handleSubmitAnswer(playerId, answer, questionIndex, headers) {
-    try {
-        const player = gameData.players.find(p => p.id === playerId);
-        if (!player) {
-            return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({ error: 'Jugador no encontrado' })
-            };
-        }
-
-        // Vérifier que c'est la bonne question
-        if (questionIndex !== gameData.currentQuestion) {
-            return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({ error: 'Question incorrecte' })
-            };
-        }
-
-        // Vérifier que le joueur n'a pas déjà répondu
-        if (gameData.playersAnswered.has(playerId)) {
-            return {
-                statusCode: 400,
-                headers,
-                body: JSON.stringify({ error: 'Ya has respondido a esta pregunta' })
-            };
-        }
-
-        const challenge = gameData.challenges[gameData.currentQuestion];
-        const isCorrect = answer === challenge.correct;
-        
-        // Calculer points en fonction du temps de réponse
-        let points = 0;
-        if (isCorrect) {
-            const timeElapsed = (Date.now() - gameData.questionStartTime) / 1000;
-            const timeBonus = Math.max(0, (challenge.time - timeElapsed) / challenge.time);
-            points = Math.round(challenge.points * (0.5 + 0.5 * timeBonus));
-            
-            player.score += points;
-        }
-
-        player.lastAnswer = {
-            questionIndex,
-            answer,
-            isCorrect,
-            points,
-            answeredAt: Date.now()
-        };
-
-        // Marquer comme ayant répondu
-        gameData.playersAnswered.add(playerId);
-
-        // Mettre à jour scores des équipes
-        updateTeamsFromPlayers();
-
-        // Vérifier si tous ont répondu ou si on doit avancer
-        checkIfShouldAdvance();
-
-        return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({
-                success: true,
-                isCorrect,
-                points,
-                newScore: player.score,
-                teams: gameData.teams,
-                playersAnswered: gameData.playersAnswered.size,
-                totalPlayers: gameData.players.length
+            body: JSON.stringify({ 
+                success: false, 
+                error: error.message 
             })
         };
-
-    } catch (error) {
-        return {
-            statusCode: 500,
-            headers,
-            body: JSON.stringify({ error: error.message })
-        };
-    }
-}
-
-function handleNextQuestion(headers) {
-    try {
-        gameData.currentQuestion++;
-        
-        if (gameData.currentQuestion < gameData.challenges.length) {
-            // Question suivante
-            const nextQuestion = gameData.challenges[gameData.currentQuestion];
-            gameData.currentQuestionData = nextQuestion;
-            gameData.questionStartTime = Date.now();
-            gameData.playersAnswered.clear();
-            
-            // Reset lastAnswer pour tous
-            gameData.players.forEach(player => {
-                player.lastAnswer = null;
-            });
-
-            startQuestionTimer(nextQuestion.time);
-
-            return {
-                statusCode: 200,
-                headers,
-                body: JSON.stringify({
-                    success: true,
-                    currentQuestion: gameData.currentQuestion,
-                    currentQuestionData: gameData.currentQuestionData,
-                    questionStartTime: gameData.questionStartTime
-                })
-            };
-        } else {
-            // Fin du jeu
-            gameData.gameStatus = 'finished';
-            gameData.currentQuestionData = null;
-            
-            if (questionTimer) {
-                clearTimeout(questionTimer);
-                questionTimer = null;
-            }
-
-            return {
-                statusCode: 200,
-                headers,
-                body: JSON.stringify({
-                    success: true,
-                    gameStatus: 'finished',
-                    finalTeams: gameData.teams
-                })
-            };
-        }
-
-    } catch (error) {
-        return {
-            statusCode: 500,
-            headers,
-            body: JSON.stringify({ error: error.message })
-        };
-    }
-}
-
-function startQuestionTimer(duration) {
-    // Nettoyer timer précédent
-    if (questionTimer) {
-        clearTimeout(questionTimer);
-    }
-
-    // Timer automatique
-    questionTimer = setTimeout(() => {
-        console.log('Timer écoulé, passage à la question suivante');
-        handleNextQuestion({ 'Content-Type': 'application/json' });
-    }, duration * 1000);
-}
-
-function checkIfShouldAdvance() {
-    // Avancer si tous les joueurs connectés ont répondu
-    const connectedPlayers = gameData.players.filter(p => p.connected);
-    
-    if (gameData.playersAnswered.size >= connectedPlayers.length && connectedPlayers.length > 0) {
-        // Tous ont répondu, on attend 3 secondes pour montrer la réponse puis on avance
-        setTimeout(() => {
-            handleNextQuestion({ 'Content-Type': 'application/json' });
-        }, 3000);
     }
 }
 
 function handleResetGame(headers) {
     try {
-        // Nettoyer timer
-        if (questionTimer) {
-            clearTimeout(questionTimer);
-            questionTimer = null;
-        }
-
         // Reset complet
         gameData = {
             players: [],
             gameStatus: 'waiting',
             currentQuestion: 0,
-            questionStartTime: null,
-            playersAnswered: new Set(),
-            currentQuestionData: null,
             teams: [
                 { name: 'RIÑÓN ROJO', emoji: '🏎️', members: [], score: 0 },
                 { name: 'AZUL NEFRÓN', emoji: '🏁', members: [], score: 0 },
                 { name: 'AMARILLO FILTRO', emoji: '🚗', members: [], score: 0 },
                 { name: 'VERDE HOMEOSTASIS', emoji: '🏎️', members: [], score: 0 },
                 { name: 'PÚRPURA UREA', emoji: '🏁', members: [], score: 0 }
-            ],
-            challenges: gameData.challenges // Garder les questions
+            ]
         };
 
         return {
@@ -516,7 +299,10 @@ function handleResetGame(headers) {
         return {
             statusCode: 500,
             headers,
-            body: JSON.stringify({ error: error.message })
+            body: JSON.stringify({ 
+                success: false, 
+                error: error.message 
+            })
         };
     }
 }

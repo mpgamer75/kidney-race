@@ -36,31 +36,17 @@
             position: relative;
         }
 
-        /* RESPONSIVE BREAKPOINTS */
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-        }
-
         .game-header {
             text-align: center;
             margin-bottom: 30px;
-            position: relative;
         }
 
         .title {
             font-size: clamp(1.8em, 5vw, 3.5em);
             font-weight: 900;
             color: #00ff41;
-            text-shadow: 0 0 30px #00ff41, 0 0 60px #00ff41;
+            text-shadow: 0 0 30px #00ff41;
             margin-bottom: 10px;
-            animation: titlePulse 2s ease-in-out infinite;
-        }
-
-        @keyframes titlePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
         }
 
         .subtitle {
@@ -114,13 +100,6 @@
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
             margin: 30px 0;
-        }
-
-        @media (max-width: 768px) {
-            .team-selector {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
         }
 
         .team-option {
@@ -206,12 +185,6 @@
             font-size: clamp(1em, 2vw, 1.3em);
             color: #ffaa00;
             margin-bottom: 30px;
-            animation: waitingPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes waitingPulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
         }
 
         .players-list {
@@ -260,6 +233,7 @@
             font-family: 'Orbitron', monospace;
             box-shadow: 0 5px 30px rgba(0,255,65,0.4);
             width: 100%;
+            margin-bottom: 10px;
         }
 
         .start-btn:hover {
@@ -270,6 +244,10 @@
         .start-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        .leave-btn {
+            background: linear-gradient(45deg, #ff4444, #cc0000);
         }
 
         /* GAME SCREEN */
@@ -311,12 +289,6 @@
             color: #ff0080;
             text-shadow: 0 0 30px #ff0080;
             margin-bottom: 20px;
-            animation: timerPulse 1s ease-in-out infinite;
-        }
-
-        @keyframes timerPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
         }
 
         .answer-options {
@@ -324,13 +296,6 @@
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
             margin-top: 25px;
-        }
-
-        @media (max-width: 768px) {
-            .answer-options {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
         }
 
         .answer-btn {
@@ -343,40 +308,15 @@
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
             text-transform: uppercase;
             font-family: 'Orbitron', monospace;
             line-height: 1.3;
-            transform: translateY(0);
         }
 
         .answer-btn:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 15px 40px rgba(0,255,65,0.6);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,255,65,0.6);
             background: linear-gradient(45deg, #555, #777);
-            border-color: #00ff88;
-            text-shadow: 0 0 10px rgba(255,255,255,0.8);
-        }
-
-        .answer-btn:hover::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 0.8s ease-in-out;
-        }
-
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-
-        .answer-btn:active {
-            transform: translateY(-4px) scale(0.98);
         }
 
         .answer-btn:disabled {
@@ -387,33 +327,14 @@
         .answer-btn.selected {
             background: linear-gradient(45deg, #ffaa00, #ff8800);
             border-color: #fff;
-            animation: selectedPulse 0.6s ease-in-out;
         }
 
         .answer-btn.correct {
             background: linear-gradient(45deg, #00ff41, #00aa2f);
-            animation: correctPulse 0.6s ease-in-out;
         }
 
         .answer-btn.incorrect {
             background: linear-gradient(45deg, #ff0080, #cc0066);
-            animation: incorrectShake 0.6s ease-in-out;
-        }
-
-        @keyframes selectedPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        @keyframes correctPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        @keyframes incorrectShake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
         }
 
         /* LEADERBOARD */
@@ -448,11 +369,6 @@
             transition: all 0.3s ease;
         }
 
-        .team-standing:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateX(5px);
-        }
-
         .standing-position {
             font-size: clamp(1.2em, 3vw, 2em);
             font-weight: 900;
@@ -479,23 +395,6 @@
             margin-top: 5px;
         }
 
-        /* SYNC STATUS */
-        .sync-status {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(45deg, #ff0080, #8000ff);
-            color: #fff;
-            padding: 20px 30px;
-            border-radius: 15px;
-            font-weight: 900;
-            z-index: 2000;
-            box-shadow: 0 0 50px rgba(255,0,128,0.8);
-            text-align: center;
-            font-size: clamp(1em, 2vw, 1.2em);
-        }
-
         /* UTILITY CLASSES */
         .hidden {
             display: none !important;
@@ -506,21 +405,11 @@
             top: 20px;
             right: 20px;
             background: rgba(0,0,0,0.8);
-            padding: clamp(10px, 2vw, 15px);
+            padding: 15px;
             border-radius: 15px;
             border: 2px solid #00ff41;
             z-index: 1000;
-            font-size: clamp(0.8em, 1.5vw, 1em);
-        }
-
-        @media (max-width: 768px) {
-            .user-info {
-                position: relative;
-                top: 0;
-                right: 0;
-                margin: 10px 0;
-                text-align: center;
-            }
+            font-size: 0.9em;
         }
 
         .user-name {
@@ -541,40 +430,24 @@
             transform: translate(-50%, -50%);
             background: linear-gradient(45deg, #00ff41, #00aa2f);
             color: #000;
-            padding: clamp(20px, 4vw, 30px) clamp(30px, 6vw, 50px);
+            padding: 30px 50px;
             border-radius: 20px;
-            font-size: clamp(1em, 2.5vw, 1.5em);
+            font-size: 1.2em;
             font-weight: 900;
             z-index: 2000;
             box-shadow: 0 0 50px rgba(0,255,65,0.8);
-            animation: notificationPop 0.5s ease-out;
             text-align: center;
             max-width: 90%;
-        }
-
-        @keyframes notificationPop {
-            0% { transform: translate(-50%, -50%) scale(0); }
-            100% { transform: translate(-50%, -50%) scale(1); }
         }
 
         .connection-status {
             position: fixed;
             bottom: 20px;
             left: 20px;
-            padding: clamp(8px, 1.5vw, 10px) clamp(10px, 2vw, 15px);
+            padding: 10px 15px;
             border-radius: 10px;
-            font-size: clamp(0.7em, 1.5vw, 0.9em);
+            font-size: 0.8em;
             z-index: 1000;
-        }
-
-        @media (max-width: 768px) {
-            .connection-status {
-                position: relative;
-                bottom: 0;
-                left: 0;
-                margin: 10px 0;
-                text-align: center;
-            }
         }
 
         .connection-status.connected {
@@ -587,16 +460,10 @@
             background: rgba(255,0,128,0.2);
             border: 1px solid #ff0080;
             color: #ff0080;
-            animation: disconnectedBlink 1s ease-in-out infinite;
-        }
-
-        @keyframes disconnectedBlink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
         }
 
         .waiting-next {
-            font-size: clamp(1em, 2vw, 1.5em);
+            font-size: 1.2em;
             color: #ffaa00;
             margin: 30px 0;
             padding: 20px;
@@ -605,19 +472,27 @@
             border-radius: 15px;
         }
 
-        .live-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            background: #ff0080;
-            border-radius: 50%;
-            margin-right: 8px;
-            animation: livePulse 1s ease-in-out infinite;
-        }
-
-        @keyframes livePulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+        @media (max-width: 768px) {
+            .team-selector {
+                grid-template-columns: 1fr;
+            }
+            .answer-options {
+                grid-template-columns: 1fr;
+            }
+            .user-info {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin: 10px 0;
+                text-align: center;
+            }
+            .connection-status {
+                position: relative;
+                bottom: 0;
+                left: 0;
+                margin: 10px 0;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -662,10 +537,7 @@
         <!-- WAITING LOBBY -->
         <div id="waiting-lobby" class="waiting-lobby hidden">
             <h2 class="lobby-title">🏁 SALA DE ESPERA</h2>
-            <p class="waiting-message">
-                <span class="live-indicator"></span>
-                SINCRONIZADO EN TIEMPO REAL
-            </p>
+            <p class="waiting-message">Esperando más jugadores...</p>
             
             <div class="players-list">
                 <h3 style="color: #00ff41; margin-bottom: 15px;">👥 JUGADORES CONECTADOS (<span id="player-count">0</span>/17)</h3>
@@ -673,13 +545,10 @@
             </div>
 
             <div class="start-game-section">
-                <p style="margin-bottom: 15px; color: #ffaa00;">
-                    ¡Cualquier jugador puede iniciar el juego!
-                </p>
                 <button id="start-game-btn" class="start-btn" disabled>
                     🚀 INICIAR CARRERA AHORA
                 </button>
-                <button id="leave-game-btn" class="start-btn" style="background: linear-gradient(45deg, #ff4444, #cc0000); margin-top: 10px;">
+                <button id="leave-game-btn" class="start-btn leave-btn">
                     🚪 SALIR DEL JUEGO
                 </button>
                 <p style="margin-top: 10px; font-size: 0.9em; color: rgba(255,255,255,0.7);">
@@ -704,10 +573,7 @@
 
         <!-- LEADERBOARD -->
         <div id="leaderboard" class="leaderboard">
-            <h2 class="leaderboard-title">
-                <span class="live-indicator"></span>
-                🏆 CLASIFICACIÓN EN VIVO
-            </h2>
+            <h2 class="leaderboard-title">🏆 CLASIFICACIÓN ACTUAL</h2>
             <div id="team-standings" class="team-standings"></div>
         </div>
 
@@ -726,7 +592,7 @@
 
     <script>
         // =============================================
-        // CLIENTE SINCRONIZADO EN TIEMPO REAL
+        // JEU SIMPLIFIÉ FONCTIONNEL
         // =============================================
         
         let gameState = {
@@ -734,14 +600,61 @@
             currentUser: null,
             selectedTeam: null,
             currentQuestion: 0,
-            localTimer: null,
+            currentTimer: null,
             isGameActive: false,
-            lastSync: 0,
-            serverData: null
+            teams: [
+                { name: 'RIÑÓN ROJO', emoji: '🏎️', members: [], score: 0 },
+                { name: 'AZUL NEFRÓN', emoji: '🏁', members: [], score: 0 },
+                { name: 'AMARILLO FILTRO', emoji: '🚗', members: [], score: 0 },
+                { name: 'VERDE HOMEOSTASIS', emoji: '🏎️', members: [], score: 0 },
+                { name: 'PÚRPURA UREA', emoji: '🏁', members: [], score: 0 }
+            ],
+            challenges: [
+                {
+                    type: "⚡ DESAFÍO RELÁMPAGO",
+                    time: 20,
+                    question: "¿Qué estructura del nefrón es responsable de la filtración selectiva de proteínas plasmáticas?",
+                    options: ["Cápsula de Bowman", "Barrera de filtración glomerular", "Túbulo contorneado proximal", "Asa de Henle"],
+                    correct: 1,
+                    points: 15
+                },
+                {
+                    type: "🧩 IDENTIFICACIÓN",
+                    time: 20,
+                    question: "¿Cuál es la hormona que regula la reabsorción de sodio en el túbulo distal?",
+                    options: ["ADH", "Aldosterona", "Eritropoyetina", "Renina"],
+                    correct: 1,
+                    points: 15
+                },
+                {
+                    type: "🚀 BONUS RACE",
+                    time: 25,
+                    question: "En la acidosis metabólica, ¿qué células del túbulo distal secretan H+ y reabsorben HCO3-?",
+                    options: ["Células principales", "Células intercaladas tipo A", "Células intercaladas tipo B", "Podocitos"],
+                    correct: 1,
+                    points: 30
+                },
+                {
+                    type: "⚡ DESAFÍO RELÁMPAGO",
+                    time: 20,
+                    question: "¿Qué valor de clearance de creatinina indica insuficiencia renal crónica estadio 3?",
+                    options: ["90-120 mL/min", "60-89 mL/min", "30-59 mL/min", "15-29 mL/min"],
+                    correct: 2,
+                    points: 20
+                },
+                {
+                    type: "🧩 IDENTIFICACIÓN",
+                    time: 25,
+                    question: "¿Qué transportador en el túbulo proximal es inhibido por los diuréticos de asa?",
+                    options: ["NCC", "NKCC2", "ENaC", "AQP2"],
+                    correct: 1,
+                    points: 20
+                }
+            ]
         };
 
         // =============================================
-        // COMMUNICATION AVEC L'API
+        // API COMMUNICATION
         // =============================================
         
         const IS_PRODUCTION = window.location.hostname !== 'localhost';
@@ -770,101 +683,50 @@
             try {
                 const response = await fetch(`${API_BASE}/join-game`);
                 if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        gameState.serverData = data;
-                        gameState.lastSync = Date.now();
-                        return data;
-                    }
+                    return await response.json();
                 }
             } catch (error) {
-                console.log('API no disponible');
+                console.log('API no disponible - modo local');
             }
             return null;
         }
 
         // =============================================
-        // INITIALISATION
+        // INITIALIZATION
         // =============================================
         
         document.addEventListener('DOMContentLoaded', function() {
             initializeGame();
             setupEventListeners();
-            startSyncLoop();
+            startPolling();
         });
 
         function initializeGame() {
             updateConnectionStatus(true);
+            updateLeaderboard();
             showScreen('login');
-            loadGameState();
         }
 
-        async function loadGameState() {
-            const serverState = await getGameState();
-            if (serverState) {
-                syncWithServer(serverState);
-            }
-        }
-
-        function startSyncLoop() {
-            // Synchronisation très fréquente pour le temps réel
+        function startPolling() {
             setInterval(async () => {
-                const serverState = await getGameState();
-                if (serverState) {
-                    syncWithServer(serverState);
-                } else {
-                    updateConnectionStatus(false);
+                if (gameState.phase === 'waiting') {
+                    const serverState = await getGameState();
+                    if (serverState && serverState.success) {
+                        syncWithServer(serverState);
+                    }
                 }
-            }, 1000); // Sync toutes les secondes
+            }, 3000);
         }
 
         function syncWithServer(serverData) {
             updateConnectionStatus(true);
             
-            // Synchroniser état du jeu
-            if (serverData.gameStatus === 'playing' && gameState.phase !== 'playing') {
-                // Le jeu vient de commencer
-                showScreen('playing');
-                showNotification('🏁 ¡La carrera ha comenzado!');
-                gameState.isGameActive = true;
-            } else if (serverData.gameStatus === 'finished' && gameState.phase === 'playing') {
-                // Le jeu vient de finir
-                endGame(serverData.teams);
-            } else if (serverData.gameStatus === 'waiting' && gameState.phase === 'playing') {
-                // Retour en salle d'attente
-                showScreen('waiting');
-                gameState.isGameActive = false;
-            }
-
-            // Synchroniser question actuelle
-            if (serverData.currentQuestionData && gameState.phase === 'playing') {
-                if (gameState.currentQuestion !== serverData.currentQuestion) {
-                    // Nouvelle question
-                    gameState.currentQuestion = serverData.currentQuestion;
-                    showQuestionFromServer(serverData);
-                } else if (serverData.questionStartTime && gameState.localTimer) {
-                    // Synchroniser timer
-                    const elapsed = (Date.now() - serverData.questionStartTime) / 1000;
-                    const timeLeft = Math.max(0, serverData.currentQuestionData.time - elapsed);
-                    updateTimerDisplay(Math.ceil(timeLeft));
-                }
-            }
-
-            // Toujours synchroniser teams et leaderboard
             if (serverData.teams) {
-                updateLeaderboardFromServer(serverData.teams);
-                updateTeamCountsFromServer(serverData.teams);
-                updatePlayersListFromServer(serverData.players || []);
+                gameState.teams = serverData.teams;
+                updateLeaderboard();
+                updateTeamCounts();
+                updatePlayersList(serverData.players || []);
                 updateStartButton(serverData.players ? serverData.players.length : 0);
-            }
-
-            // Mettre à jour info utilisateur si connecté
-            if (gameState.currentUser && serverData.players) {
-                const updatedUser = serverData.players.find(p => p.id === gameState.currentUser.id);
-                if (updatedUser) {
-                    gameState.currentUser = updatedUser;
-                    updateUserInfo();
-                }
             }
         }
 
@@ -887,20 +749,25 @@
                 });
             });
 
-            // Botones
+            // Buttons
             document.getElementById('join-game-btn').addEventListener('click', joinGame);
             document.getElementById('start-game-btn').addEventListener('click', startGame);
             document.getElementById('leave-game-btn').addEventListener('click', leaveGame);
 
-            // Atajos de teclado
+            // Keyboard shortcuts
             document.addEventListener('keydown', handleKeyboardShortcuts);
         }
 
         // =============================================
-        // GESTIÓN DE EQUIPOS Y JUGADORES
+        // TEAM AND PLAYER MANAGEMENT
         // =============================================
         
         function selectTeam(teamIndex) {
+            if (gameState.teams[teamIndex].members.length >= 4) {
+                showNotification('⚠️ Equipo completo. Elige otro equipo.');
+                return;
+            }
+
             document.querySelectorAll('.team-option').forEach(option => {
                 option.classList.remove('selected');
             });
@@ -912,7 +779,7 @@
 
         function validateJoinButton() {
             const username = document.getElementById('username-input').value.trim();
-            const hasTeam = gameState.selectedTeam !== undefined;
+            const hasTeam = gameState.selectedTeam !== undefined && gameState.selectedTeam !== null;
             const btn = document.getElementById('join-game-btn');
             
             btn.disabled = !username || !hasTeam || username.length < 2;
@@ -927,23 +794,23 @@
                 return;
             }
 
-            showSyncStatus('🔄 Uniéndose al juego...');
-
             const response = await apiCall('join', {
                 playerName: username,
                 teamIndex: teamIndex
             });
 
-            hideSyncStatus();
-
             if (response.success) {
                 gameState.currentUser = response.player;
+                
+                // Sync immediately
+                const serverState = await getGameState();
+                if (serverState && serverState.success) {
+                    syncWithServer(serverState);
+                }
+                
                 updateUserInfo();
                 showScreen('waiting');
                 showNotification(`🎉 ¡Bienvenido ${username}!`);
-                
-                // Sync immédiate après connexion
-                await loadGameState();
             } else {
                 showNotification(`❌ ${response.error || 'Error al unirse'}`);
             }
@@ -956,29 +823,23 @@
                 return;
             }
 
-            showSyncStatus('🔄 Saliendo del juego...');
-
             await apiCall('leave', {
                 playerId: gameState.currentUser.id
             });
 
-            hideSyncStatus();
             leaveGameLocally();
         }
 
         function leaveGameLocally() {
-            // Nettoyer timer
-            if (gameState.localTimer) {
-                clearInterval(gameState.localTimer);
-                gameState.localTimer = null;
+            if (gameState.currentTimer) {
+                clearInterval(gameState.currentTimer);
+                gameState.currentTimer = null;
             }
 
-            // Reset état
             gameState.currentUser = null;
             gameState.selectedTeam = null;
             gameState.isGameActive = false;
 
-            // Retour login
             showScreen('login');
             showNotification('👋 Has salido del juego');
 
@@ -990,11 +851,11 @@
         }
 
         // =============================================
-        // ACTUALIZACIÓN DE UI DESDE SERVIDOR
+        // UI UPDATES
         // =============================================
         
-        function updateTeamCountsFromServer(teams) {
-            teams.forEach((team, index) => {
+        function updateTeamCounts() {
+            gameState.teams.forEach((team, index) => {
                 const countElement = document.getElementById(`team-${index}-count`);
                 const teamOption = document.querySelector(`[data-team="${index}"]`);
                 
@@ -1012,17 +873,15 @@
             });
         }
 
-        function updatePlayersListFromServer(players) {
+        function updatePlayersList(players) {
             const container = document.getElementById('players-container');
             const countElement = document.getElementById('player-count');
             
             countElement.textContent = players.length;
             container.innerHTML = '';
 
-            if (!gameState.serverData || !gameState.serverData.teams) return;
-
             players.forEach(player => {
-                const team = gameState.serverData.teams[player.team];
+                const team = gameState.teams[player.team];
                 if (!team) return;
                 
                 const playerDiv = document.createElement('div');
@@ -1051,11 +910,11 @@
             }
         }
 
-        function updateLeaderboardFromServer(teams) {
+        function updateLeaderboard() {
             const standings = document.getElementById('team-standings');
             standings.innerHTML = '';
             
-            const sortedTeams = [...teams]
+            const sortedTeams = [...gameState.teams]
                 .map((team, index) => ({ ...team, index }))
                 .sort((a, b) => b.score - a.score);
             
@@ -1080,12 +939,10 @@
         }
 
         function updateUserInfo() {
-            if (!gameState.currentUser || !gameState.serverData || !gameState.serverData.teams) return;
+            if (!gameState.currentUser) return;
             
             const user = gameState.currentUser;
-            const team = gameState.serverData.teams[user.team];
-            
-            if (!team) return;
+            const team = gameState.teams[user.team];
             
             document.getElementById('user-name-display').textContent = user.name;
             document.getElementById('user-team-display').textContent = `${team.emoji} ${team.name}`;
@@ -1097,7 +954,7 @@
             
             if (connected) {
                 statusElement.className = 'connection-status connected';
-                statusElement.textContent = '🟢 Sincronizado';
+                statusElement.textContent = '🟢 Conectado';
             } else {
                 statusElement.className = 'connection-status disconnected';
                 statusElement.textContent = '🔴 Desconectado';
@@ -1105,39 +962,25 @@
         }
 
         // =============================================
-        // LÓGICA DEL JUEGO
+        // GAME LOGIC
         // =============================================
         
         async function startGame() {
-            if (!gameState.serverData || gameState.serverData.players.length < 1) {
-                showNotification('❌ Se necesita al menos 1 jugador');
-                return;
-            }
-            
-            showSyncStatus('🚀 Iniciando carrera...');
-            
-            const response = await apiCall('start');
-            
-            hideSyncStatus();
-            
-            if (!response.success) {
-                showNotification(`❌ ${response.error || 'Error al iniciar'}`);
-            }
-            // La sincronización se encargará de mostrar el juego
+            gameState.isGameActive = true;
+            gameState.currentQuestion = 0;
+            showScreen('playing');
+            showQuestion(gameState.challenges[0], 0);
+            showNotification('🏁 ¡La carrera ha comenzado!');
         }
 
-        function showQuestionFromServer(serverData) {
-            const question = serverData.currentQuestionData;
-            if (!question) return;
+        function showQuestion(question, questionIndex) {
+            gameState.currentQuestion = questionIndex;
             
-            // Nettoyer état précédent
             document.getElementById('waiting-next').classList.add('hidden');
             
-            // Mettre à jour question
             document.getElementById('challenge-type').textContent = question.type;
             document.getElementById('question-text').textContent = question.question;
             
-            // Créer options
             const optionsContainer = document.getElementById('answer-options');
             optionsContainer.innerHTML = '';
             
@@ -1147,31 +990,20 @@
                 button.textContent = option;
                 button.onclick = () => selectAnswer(index);
                 button.dataset.option = index;
-                
-                // Vérifier si déjà répondu
-                if (gameState.currentUser && gameState.currentUser.lastAnswer && 
-                    gameState.currentUser.lastAnswer.questionIndex === gameState.currentQuestion) {
-                    button.disabled = true;
-                    if (gameState.currentUser.lastAnswer.answer === index) {
-                        button.classList.add('selected');
-                    }
-                }
-                
                 optionsContainer.appendChild(button);
             });
 
-            // Démarrer timer local synchronisé
-            const elapsed = (Date.now() - serverData.questionStartTime) / 1000;
-            const timeLeft = Math.max(0, question.time - elapsed);
-            startLocalTimer(Math.ceil(timeLeft));
+            startTimer(question.time);
         }
 
-        async function selectAnswer(optionIndex) {
-            if (!gameState.currentUser || !gameState.serverData) return;
+        function selectAnswer(optionIndex) {
+            if (!gameState.currentUser) return;
             
             const buttons = document.querySelectorAll('.answer-btn');
+            const challenge = gameState.challenges[gameState.currentQuestion];
+            const isCorrect = optionIndex === challenge.correct;
             
-            // Désactiver tous les boutons
+            // Disable all buttons
             buttons.forEach(btn => {
                 btn.disabled = true;
                 if (parseInt(btn.dataset.option) === optionIndex) {
@@ -1179,71 +1011,86 @@
                 }
             });
             
-            showSyncStatus('📤 Enviando respuesta...');
+            // Calculate points
+            let points = 0;
+            if (isCorrect) {
+                points = challenge.points;
+                gameState.currentUser.score += points;
+                gameState.teams[gameState.currentUser.team].score += points;
+            }
             
-            // Envoyer réponse au serveur
-            const response = await apiCall('answer', {
-                playerId: gameState.currentUser.id,
-                answer: optionIndex,
-                questionIndex: gameState.currentQuestion
+            // Show result
+            const message = isCorrect 
+                ? `✅ ¡Correcto! +${points} puntos`
+                : `❌ Incorrecto`;
+            
+            document.getElementById('waiting-next').classList.remove('hidden');
+            document.getElementById('waiting-next').innerHTML = `
+                ${message}<br>
+                <small>Esperando siguiente pregunta...</small>
+            `;
+
+            // Update UI
+            updateUserInfo();
+            updateLeaderboard();
+
+            // Auto-advance
+            setTimeout(() => {
+                showCorrectAnswer(challenge.correct);
+                setTimeout(() => {
+                    nextQuestion();
+                }, 3000);
+            }, 2000);
+        }
+
+        function showCorrectAnswer(correctIndex) {
+            const buttons = document.querySelectorAll('.answer-btn');
+            
+            buttons.forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === correctIndex) {
+                    btn.classList.add('correct');
+                } else if (btn.classList.contains('selected')) {
+                    btn.classList.add('incorrect');
+                }
             });
+        }
+
+        function nextQuestion() {
+            gameState.currentQuestion++;
             
-            hideSyncStatus();
-            
-            if (response.success) {
-                const message = response.isCorrect 
-                    ? `✅ ¡Correcto! +${response.points} puntos`
-                    : `❌ Incorrecto`;
-                
-                document.getElementById('waiting-next').classList.remove('hidden');
-                document.getElementById('waiting-next').innerHTML = `
-                    ${message}<br>
-                    <small>Esperando otros jugadores...</small>
-                `;
-                
-                // La synchronisation mettra à jour les scores
+            if (gameState.currentQuestion < gameState.challenges.length) {
+                const nextChallenge = gameState.challenges[gameState.currentQuestion];
+                showQuestion(nextChallenge, gameState.currentQuestion);
             } else {
-                showNotification(`❌ ${response.error || 'Error al enviar respuesta'}`);
-                // Réactiver les boutons en cas d'erreur
-                buttons.forEach(btn => {
-                    btn.disabled = false;
-                    btn.classList.remove('selected');
-                });
+                endGame();
             }
         }
 
-        function startLocalTimer(duration) {
-            // Nettoyer timer précédent
-            if (gameState.localTimer) {
-                clearInterval(gameState.localTimer);
-                gameState.localTimer = null;
+        function startTimer(duration) {
+            if (gameState.currentTimer) {
+                clearInterval(gameState.currentTimer);
+                gameState.currentTimer = null;
             }
 
             let timeLeft = duration;
             updateTimerDisplay(timeLeft);
             
-            if (timeLeft <= 0) return;
-            
-            gameState.localTimer = setInterval(() => {
+            gameState.currentTimer = setInterval(() => {
                 timeLeft--;
                 updateTimerDisplay(timeLeft);
                 
                 if (timeLeft <= 0) {
-                    clearInterval(gameState.localTimer);
-                    gameState.localTimer = null;
+                    clearInterval(gameState.currentTimer);
+                    gameState.currentTimer = null;
                     
-                    // Désactiver boutons si pas encore répondu
-                    if (gameState.currentUser && (!gameState.currentUser.lastAnswer || 
-                        gameState.currentUser.lastAnswer.questionIndex !== gameState.currentQuestion)) {
-                        document.querySelectorAll('.answer-btn').forEach(btn => {
-                            btn.disabled = true;
-                        });
-                        
-                        document.getElementById('waiting-next').classList.remove('hidden');
-                        document.getElementById('waiting-next').innerHTML = `
-                            ⏰ Temps écoulé!<br>
-                            <small>Esperando siguiente pregunta...</small>
-                        `;
+                    const challenge = gameState.challenges[gameState.currentQuestion];
+                    showCorrectAnswer(challenge.correct);
+                    
+                    if (gameState.isGameActive) {
+                        setTimeout(() => {
+                            nextQuestion();
+                        }, 3000);
                     }
                 }
             }, 1000);
@@ -1253,42 +1100,49 @@
             const timerElement = document.getElementById('timer-display');
             timerElement.textContent = `⏱️ ${timeLeft}`;
             
-            // Changer couleur selon temps restant
             if (timeLeft <= 5) {
                 timerElement.style.color = '#ff0080';
-                timerElement.style.animation = 'timerPulse 0.5s ease-in-out infinite';
             } else if (timeLeft <= 10) {
                 timerElement.style.color = '#ffaa00';
             } else {
                 timerElement.style.color = '#ff0080';
-                timerElement.style.animation = 'timerPulse 1s ease-in-out infinite';
             }
         }
 
-        function endGame(finalTeams) {
-            // Marquer jeu comme inactif
+        function endGame() {
             gameState.isGameActive = false;
             
-            // Nettoyer timer
-            if (gameState.localTimer) {
-                clearInterval(gameState.localTimer);
-                gameState.localTimer = null;
+            if (gameState.currentTimer) {
+                clearInterval(gameState.currentTimer);
+                gameState.currentTimer = null;
             }
 
-            const sortedTeams = [...finalTeams].sort((a, b) => b.score - a.score);
+            const sortedTeams = [...gameState.teams].sort((a, b) => b.score - a.score);
             const winner = sortedTeams[0];
             
             showNotification(`🏆 ¡${winner.emoji} ${winner.name} GANA LA CARRERA! 🏆`);
+            updateLeaderboard();
             
-            // Afficher classement final puis retourner en attente
             setTimeout(() => {
                 showScreen('waiting');
-                showNotification('🎮 ¡Juego terminado! Pueden unirse más jugadores para otra partida.');
+                showNotification('🎮 ¡Juego terminado! Pueden jugar otra partida.');
+                
+                // Reset scores
+                gameState.teams.forEach(team => {
+                    team.score = 0;
+                    team.members.forEach(member => member.score = 0);
+                });
+                
+                if (gameState.currentUser) {
+                    gameState.currentUser.score = 0;
+                }
+                
+                updateLeaderboard();
             }, 5000);
         }
 
         // =============================================
-        // GESTIÓN DE PANTALLAS
+        // SCREEN MANAGEMENT
         // =============================================
         
         function showScreen(screenName) {
@@ -1315,7 +1169,7 @@
         }
 
         // =============================================
-        // FUNCIONES UTILITARIAS
+        // UTILITY FUNCTIONS
         // =============================================
         
         function showNotification(message) {
@@ -1334,25 +1188,8 @@
             }, 3000);
         }
 
-        function showSyncStatus(message) {
-            let syncStatus = document.querySelector('.sync-status');
-            if (!syncStatus) {
-                syncStatus = document.createElement('div');
-                syncStatus.className = 'sync-status';
-                document.body.appendChild(syncStatus);
-            }
-            syncStatus.textContent = message;
-        }
-
-        function hideSyncStatus() {
-            const syncStatus = document.querySelector('.sync-status');
-            if (syncStatus) {
-                syncStatus.remove();
-            }
-        }
-
         function handleKeyboardShortcuts(event) {
-            // Teclas numéricas para respuestas
+            // Number keys for answers
             if (event.key >= '1' && event.key <= '4' && gameState.phase === 'playing') {
                 const answerIndex = parseInt(event.key) - 1;
                 const buttons = document.querySelectorAll('.answer-btn');
@@ -1361,7 +1198,7 @@
                 }
             }
             
-            // Espacio para iniciar juego
+            // Space to start game
             if (event.key === ' ' && gameState.phase === 'waiting') {
                 const btn = document.getElementById('start-game-btn');
                 if (!btn.disabled) {
@@ -1372,10 +1209,10 @@
         }
 
         // =============================================
-        // OPTIMIZACIONES PARA MÓVILES
+        // MOBILE OPTIMIZATIONS
         // =============================================
         
-        // Prevenir zoom en doble tap
+        // Prevent double-tap zoom
         let lastTouchEnd = 0;
         document.addEventListener('touchend', function (event) {
             const now = (new Date()).getTime();
@@ -1384,65 +1221,6 @@
             }
             lastTouchEnd = now;
         }, false);
-
-        // Ajustar viewport en orientación
-        window.addEventListener('orientationchange', function() {
-            setTimeout(() => {
-                document.body.style.height = '100vh';
-                setTimeout(() => {
-                    document.body.style.height = '';
-                }, 100);
-            }, 500);
-        });
-
-        // =============================================
-        // DEBUG PARA DESARROLLO
-        // =============================================
-        
-        if (window.location.hostname === 'localhost' || window.location.search.includes('debug=true')) {
-            window.gameDebug = {
-                state: gameState,
-                forceJoin: (username, team) => {
-                    document.getElementById('username-input').value = username || 'TestUser';
-                    selectTeam(team || 0);
-                    joinGame();
-                },
-                simulateAnswer: (option) => {
-                    selectAnswer(option || 0);
-                },
-                getServerState: getGameState,
-                syncNow: loadGameState
-            };
-            
-            console.log('🔧 Modo debug activado. Comandos:', Object.keys(window.gameDebug));
-        }
-
-        // =============================================
-        // INDICATEUR DE PERFORMANCE
-        // =============================================
-        
-        // Monitoring simple de la latence de sync
-        let syncLatency = 0;
-        const originalGetGameState = getGameState;
-        
-        getGameState = async function() {
-            const start = Date.now();
-            const result = await originalGetGameState();
-            syncLatency = Date.now() - start;
-            
-            // Afficher latence si > 2s
-            if (syncLatency > 2000) {
-                console.warn(`⚠️ Sync lente: ${syncLatency}ms`);
-            }
-            
-            return result;
-        };
-
-        // Exposer stats pour debug
-        if (window.gameDebug) {
-            window.gameDebug.getLatency = () => syncLatency;
-            window.gameDebug.getLastSync = () => new Date(gameState.lastSync).toLocaleTimeString();
-        }
     </script>
 </body>
 </html>
